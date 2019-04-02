@@ -2,13 +2,18 @@ import { Layout, Menu } from "antd";
 import { Link } from "react-router-dom";
 import React from "react";
 import * as ROUTES from "../../constants/routes";
-import { withFirebase } from "../Firebase";
+import { AuthUserContext } from "../Session/index";
 import SignOutButton from "../SignOut/signOutButton";
 import styled from "styled-components";
 const { Header } = Layout;
 
-const Navigation = props =>
-  props.authUser ? <NavigationAuth /> : <NavigationNonAuth />;
+const Navigation = () => (
+  <div>
+    <AuthUserContext.Consumer>
+      {authUser => (authUser ? <NavigationAuth /> : <NavigationNonAuth />)}
+    </AuthUserContext.Consumer>
+  </div>
+);
 
 const NavigationAuth = () => {
   return (

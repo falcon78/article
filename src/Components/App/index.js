@@ -1,5 +1,6 @@
 import React from "react";
 import "../../App.css";
+import New from "../Content/new";
 import { BrowserRouter as Router, Route } from "react-router-dom";
 import Navigation from "../Navigation/index";
 import * as ROUTES from "../../constants/routes";
@@ -7,6 +8,8 @@ import * as ROUTES from "../../constants/routes";
 // import SignUpPage from '../SignUp';
 import SignInPage from "../SignIn";
 import { withAuth } from "../Session/index";
+import styled from "styled-components";
+
 // import PasswordForgetPage from '../PasswordForget';
 // import HomePage from '../Home';
 // import AccountPage from '../Account';
@@ -16,11 +19,19 @@ const App = () => {
   return (
     <Router>
       <div>
-        <Navigation  />
-        <Route exact path={ROUTES.SIGN_IN} component={SignInPage} />
+        <Navigation />
+        <TopPadding>
+          <Route exact path={ROUTES.LANDING} component={SignInPage} />
+          <Route exact path={ROUTES.SIGN_IN} component={SignInPage} />
+          <Route exact path={ROUTES.NEW} component={New} />
+        </TopPadding>
       </div>
     </Router>
   );
 };
 
 export default withAuth(App);
+
+const TopPadding = styled.div`
+  padding: 8em 1em 0;
+`;

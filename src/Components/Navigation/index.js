@@ -28,10 +28,10 @@ const NavigationAuth = () => {
           style={{ lineHeight: "64px" }}
         >
           <Menu.Item key="1">
-            <Link to={ROUTES.HOME}>Home</Link>
+            <Link to={ROUTES.LANDING}>Home</Link>
           </Menu.Item>
           <Menu.Item key="3">
-            <Link to={ROUTES.SIGN_IN}>New</Link>
+            <Link to={ROUTES.NEW}>New</Link>
           </Menu.Item>
           <Menu.Item className="button">
             <SignOutButton />

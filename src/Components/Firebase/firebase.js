@@ -17,7 +17,6 @@ class Firebase {
     this.auth = firebase.auth();
     //this.db = firebase.database();
     this.db = firebase.firestore();
-    console.log(this.db);
   }
 
   doCreateWithEmailAndPassword = (email, password) =>

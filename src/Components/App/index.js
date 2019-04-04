@@ -1,14 +1,17 @@
-import React from "react";
-import "../../App.css";
-import New from "../Content/new";
-import { BrowserRouter as Router, Route } from "react-router-dom";
-import Navigation from "../Navigation/index";
-import * as ROUTES from "../../constants/routes";
+import React from 'react';
+import '../../App.css';
+import New from '../Content/new';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import Navigation from '../Navigation/index';
+import * as ROUTES from '../../constants/routes';
 // import LandingPage from '../Landing';
 // import SignUpPage from '../SignUp';
-import SignInPage from "../SignIn";
-import { withAuth } from "../Session/index";
-import styled from "styled-components";
+import SignInPage from '../SignIn';
+import { withAuth } from '../Session/index';
+import styled from 'styled-components';
+import Home from '../Content/home';
+import NotFound from '../notfound';
+import Edit from '../Content/edit';
 
 // import PasswordForgetPage from '../PasswordForget';
 // import HomePage from '../Home';
@@ -21,9 +24,13 @@ const App = () => {
       <div>
         <Navigation />
         <TopPadding>
-          <Route exact path={ROUTES.LANDING} component={SignInPage} />
-          <Route exact path={ROUTES.SIGN_IN} component={SignInPage} />
-          <Route exact path={ROUTES.NEW} component={New} />
+          <Switch>
+            <Route exact path={ROUTES.LANDING} component={Home} />
+            <Route exact path={ROUTES.SIGN_IN} component={SignInPage} />
+            <Route exact path={ROUTES.NEW} component={New} />
+            <Route path={`${ROUTES.EDIT}/:id`} component={Edit} />
+            <Route component={NotFound} />
+          </Switch>
         </TopPadding>
       </div>
     </Router>
@@ -33,5 +40,5 @@ const App = () => {
 export default withAuth(App);
 
 const TopPadding = styled.div`
-  padding: 8em 1em 0;
+  padding: 6em 1em 0;
 `;

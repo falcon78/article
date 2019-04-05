@@ -20,7 +20,7 @@ class Home extends Component {
   async getfirebase() {
     let local = [];
     await this.reference
-      .get()
+      .orderBy("createdOn","desc").get()
       .then(snapshot => {
         snapshot.forEach(data => {
           local = local.concat(data)

@@ -15,6 +15,15 @@ class SignInForm extends Component {
       error: ''
     };
   }
+  componentDidMount() {
+    let docref = this.props.firebase.db.collection('Articles').doc('testdoc');
+    docref
+      .get()
+      .then()
+      .catch(err => {
+        console.log(err);
+      });
+  }
   onChange = e => {
     this.setState({
       [e.target.name]: e.target.value

@@ -73,6 +73,18 @@ class Edit extends React.Component {
     return (
       <Style>
         <div className="left">
+          <div style={{display: "flex", justifyContent: "space-between"}}>
+            <Input
+              style={{ width: '49%', marginBottom: '0' }}
+              value={'Articles'}
+              disabled
+            />
+            <Input
+              style={{ width: '48%', marginBottom: '0' }}
+              value={this.articleID}
+              disabled
+            />
+          </div>
           <Input
             style={{ margin: '1em 0' }}
             name="title"
@@ -80,13 +92,13 @@ class Edit extends React.Component {
             value={this.state.title}
           />
           <TextArea
-            style={{ height: '65vw' }}
+            style={{ height: '75vh' }}
             name="body"
             onChange={this.handleChange}
             value={this.state.body}
           />
           <Button
-            style={{ margin: '1em 0 0' }}
+            style={{ margin: '1em 0 2em' }}
             loading={this.state.loading}
             onClick={this.handleSubmit}
           >

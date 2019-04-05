@@ -110,17 +110,21 @@ class NewArticle extends React.Component {
           <TextArea
             required
             placeholder="テキスト"
-            style={{ margin: '1em 0', height: '63vw' }}
+            style={{ margin: '1em 0', height: '70vh' }}
             name="body"
             onChange={this.handleChange}
             value={this.state.body}
           />
-          <Button loading={this.state.loading} onClick={this.handleSubmit}>
-            送信
-          </Button>
           {this.state.error && (
             <p style={{ margin: '1em 0' }}>{this.state.error}</p>
           )}
+          <Button
+            style={{ margin: '1em 0 2em' }}
+            loading={this.state.loading}
+            onClick={this.handleSubmit}
+          >
+            追加
+          </Button>
         </div>
         <div className={'right'}>
           <ArticleView articledata={this.state.body} />

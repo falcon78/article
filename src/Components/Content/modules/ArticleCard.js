@@ -9,6 +9,7 @@ const ArticleCard = props => {
       {props.articledata.data().title && (
         <Link to={ROUTES.EDIT + '/' + props.articledata.id}>
           <Card
+            hoverable
             title={props.articledata.data().title}
             style={{ width: 300, margin: '1em' }}
           >

@@ -1,14 +1,14 @@
-import firebase from "firebase/app";
-import "firebase/auth";
-import "firebase/firestore";
+import firebase from 'firebase/app';
+import 'firebase/auth';
+import 'firebase/firestore';
 
-let config = {
-  apiKey: "AIzaSyCK2X4v8vw2QzBGOKY4Pz3gYX2tHNdPhgw",
-  authDomain: "authenticate-57354.firebaseapp.com",
-  databaseURL: "https://authenticate-57354.firebaseio.com",
-  projectId: "authenticate-57354",
-  storageBucket: "authenticate-57354.appspot.com",
-  messagingSenderId: "454213098463"
+const config = {
+  apiKey: 'AIzaSyDF9F9RrbBPIf08InP93xQ-MJzlH_anHRk',
+  authDomain: 'autho-ce94e.firebaseapp.com',
+  databaseURL: 'https://autho-ce94e.firebaseio.com',
+  projectId: 'autho-ce94e',
+  storageBucket: 'autho-ce94e.appspot.com',
+  messagingSenderId: '20272200738'
 };
 
 class Firebase {

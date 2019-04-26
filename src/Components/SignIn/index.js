@@ -16,10 +16,13 @@ class SignInForm extends Component {
     };
   }
   componentDidMount() {
+    //ログインしていない状態でデータを取得できるか試しています。（アクセス権限のテスト）
     let docref = this.props.firebase.db.collection('Articles').doc('testdoc');
     docref
       .get()
-      .then()
+      .then(res => {
+        console.log(res.data())
+      })
       .catch(err => {
         console.log(err);
       });

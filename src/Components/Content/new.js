@@ -13,10 +13,12 @@ class NewArticle extends React.Component {
   constructor(props) {
     super(props);
     this.INITIAL_STATE = {
+      public: 'false',
       title: '',
-      body: '',
       collection: 'Articles',
       document: '',
+      subcollection: '',
+      subdocument: '',
       loading: false,
       error: ''
     };
@@ -88,8 +90,25 @@ class NewArticle extends React.Component {
               placeholder="collection"
               value={this.state.collection}
               name="collection"
-              disabled
-              //onChange={this.handleChange}
+              onChange={this.handleChange}
+            />
+            <Input
+              required
+              style={{ width: '48%', marginBottom: '1em' }}
+              placeholder="document"
+              value={this.state.document}
+              name="document"
+              onChange={this.handleChange}
+            />
+          </div>
+          <div className="container">
+            <Input
+              required
+              style={{ width: '49%', marginBottom: '1em' }}
+              placeholder="collection"
+              value={this.state.collection}
+              name="collection"
+              onChange={this.handleChange}
             />
             <Input
               required
@@ -107,14 +126,7 @@ class NewArticle extends React.Component {
             onChange={this.handleChange}
             name="title"
           />
-          <TextArea
-            required
-            placeholder="テキスト"
-            style={{ margin: '1em 0', height: '70vh' }}
-            name="body"
-            onChange={this.handleChange}
-            value={this.state.body}
-          />
+
           {this.state.error && (
             <p style={{ margin: '1em 0' }}>{this.state.error}</p>
           )}

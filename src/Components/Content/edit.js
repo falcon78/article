@@ -161,7 +161,7 @@ class Edit extends React.Component {
             onSelect={this.handleadd}
             onSearch={this.handleSearch}
             value={this.state.add}
-            placeholder="input here"
+            placeholder="入力/選択"
           />
           <Button
             style={{ margin: '1em 0 2em' }}

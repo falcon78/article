@@ -15,7 +15,6 @@ class Edit extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      flag: '',
       location: {
         collection: '',
         document: '',
@@ -27,11 +26,10 @@ class Edit extends React.Component {
       body: [{ title: 'this is title' }, { test: 'this is test' }],
       error: '',
       add: '',
-      loading: false
+      loading: false,
+      title_source: ['title', 'passage', 'subpassage', 'text', 'image']
     };
   }
-
-  title_source = ['title', 'passage', 'subpassage', 'text', 'image'];
 
   docref = this.props.firebase.db
     .collection('Hidden')
@@ -80,7 +78,8 @@ class Edit extends React.Component {
 
   handleadd = value => {
     this.setState({
-      body: [...this.state.body, { [value]: '' }]
+      body: [...this.state.body, { [value]: '' }],
+      add: ''
     });
   };
 
@@ -107,6 +106,10 @@ class Edit extends React.Component {
   }
 
   render() {
+    let source = this.state.title_source;
+    if (this.state.add) {
+      source = [this.state.add, ...this.state.title_source];
+    }
     return (
       <Style>
         <div className="left">
@@ -131,20 +134,29 @@ class Edit extends React.Component {
           {this.state.body.map((content, index) => {
             let key = Object.keys(content)[0];
             let textArea = (
-              <TextArea
-                style={{ margin: '0.5em 0' }}
-                key={index}
-                autosize={{ minRows: 2, maxRows: 6 }}
-                name={index}
-                onChange={e => this.handleChange(key, e)}
-                value={this.state.body[index][key]}
-              />
+              <React.Fragment key={index}>
+                <Input
+                  size="small"
+                  placeholder={key}
+                  value={key}
+                  style={{
+                    marginTop: '1em'
+                  }}
+                />
+                <TextArea
+                  style={{ margin: '0.5em 0' }}
+                  autosize={{ minRows: 2, maxRows: 6 }}
+                  name={index}
+                  onChange={e => this.handleChange(key, e)}
+                  value={this.state.body[index][key]}
+                />
+              </React.Fragment>
             );
             console.log(content, index);
             return textArea;
           })}
           <AutoComplete
-            dataSource={this.title_source}
+            dataSource={source}
             style={{ width: 200 }}
             onSelect={this.handleadd}
             onSearch={this.handleSearch}

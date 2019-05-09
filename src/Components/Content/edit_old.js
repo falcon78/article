@@ -1,6 +1,4 @@
 import React from 'react';
-
-import { AutoComplete } from 'antd';
 import { withAuthorization } from '../Session/index';
 import { withFirebase } from '../Firebase/index';
 import { withRouter } from 'react-router-dom';
@@ -9,44 +7,29 @@ import { Input, Button } from 'antd';
 import styled from 'styled-components';
 import ArticleView from './modules/viewArticle';
 const { TextArea } = Input;
-const uuidv4 = require('uuid/v4');
 
 class Edit extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      flag: '',
-      location: {
-        collection: '',
-        document: '',
-        subcollection: '',
-        subdocument: ''
-      },
-      contentCounter: 0,
       title: '',
-      body: [{ title: 'this is title' }, { test: 'this is test' }],
+      body: '',
       error: '',
-      add: '',
       loading: false
     };
+    this.getFirebase = this.getFirebase.bind(this);
+    this.handleSubmit = this.handleSubmit.bind(this);
   }
-
-  title_source = ['title', 'passage', 'subpassage', 'text', 'image'];
-
+  articleID = this.props.match.params.id;
   docref = this.props.firebase.db
-    .collection('Hidden')
-    .doc(`${this.props.match.params.id}`);
-  getfirebase = async () => {
+    .collection('Articles')
+    .doc(`${this.articleID}`);
+
+  async getFirebase() {
     await this.docref
       .get()
       .then(data => {
         this.setState({
-          location: {
-            collection: data.data().location.collection,
-            document: data.data().location.document,
-            subcollection: data.data().location.subcollection,
-            subdocument: data.data().location.subcollection
-          },
           title: data.data().title,
           body: data.data().body
         });
@@ -56,35 +39,15 @@ class Edit extends React.Component {
           error
         });
       });
-  };
+  }
 
-  handleChange = (key, event) => {
-    let bodyLocal = this.state.body;
-    bodyLocal[event.target.name][key] = event.target.value;
-    this.setState(prevState => ({
-      body: bodyLocal
-    }));
-  };
-
-  handleChangeTitle = event => {
+  handleChange = event => {
     this.setState({
-      title: event.target.value
+      [event.target.name]: event.target.value
     });
   };
 
-  handleSearch = value => {
-    this.setState({
-      add: value
-    });
-  };
-
-  handleadd = value => {
-    this.setState({
-      body: [...this.state.body, { [value]: '' }]
-    });
-  };
-
-  handleSubmit = async () => {
+  async handleSubmit() {
     this.setState({
       loading: true
     });
@@ -100,7 +63,7 @@ class Edit extends React.Component {
         });
       })
       .catch();
-  };
+  }
 
   componentDidMount() {
     //this.getFirebase();
@@ -110,7 +73,7 @@ class Edit extends React.Component {
     return (
       <Style>
         <div className="left">
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div style={{display: "flex", justifyContent: "space-between"}}>
             <Input
               style={{ width: '49%', marginBottom: '0' }}
               value={'Articles'}
@@ -125,31 +88,14 @@ class Edit extends React.Component {
           <Input
             style={{ margin: '1em 0' }}
             name="title"
-            onChange={this.handleChangeTitle}
+            onChange={this.handleChange}
             value={this.state.title}
           />
-          {this.state.body.map((content, index) => {
-            let key = Object.keys(content)[0];
-            let textArea = (
-              <TextArea
-                style={{ margin: '0.5em 0' }}
-                key={index}
-                autosize={{ minRows: 2, maxRows: 6 }}
-                name={index}
-                onChange={e => this.handleChange(key, e)}
-                value={this.state.body[index][key]}
-              />
-            );
-            console.log(content, index);
-            return textArea;
-          })}
-          <AutoComplete
-            dataSource={this.title_source}
-            style={{ width: 200 }}
-            onSelect={this.handleadd}
-            onSearch={this.handleSearch}
-            value={this.state.add}
-            placeholder="input here"
+          <TextArea
+            style={{ height: '75vh' }}
+            name="body"
+            onChange={this.handleChange}
+            value={this.state.body}
           />
           <Button
             style={{ margin: '1em 0 2em' }}

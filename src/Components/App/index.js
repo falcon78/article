@@ -28,7 +28,7 @@ const App = () => {
             <Route exact path={ROUTES.LANDING} component={Home} />
             <Route exact path={ROUTES.SIGN_IN} component={SignInPage} />
             <Route exact path={ROUTES.NEW} component={New} />
-            <Route path={`${ROUTES.EDIT}/:id`} component={Edit} />
+            <Route exact path={`${ROUTES.EDIT}/:id`} component={Edit} />
             <Route component={NotFound} />
           </Switch>
         </TopPadding>

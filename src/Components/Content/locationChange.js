@@ -15,7 +15,7 @@ const locationChange = props => {
   });
 
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(loading);
+  const [loading, setLoading] = useState(false);
 
   let pull_data;
 
@@ -50,8 +50,6 @@ const locationChange = props => {
             docref_pull
               .delete()
               .then(() => {
-                setLoading(false);
-                //done loading
               })
               .catch(error => {
                 setError('エラーが発生しました。cant delete data');
@@ -100,15 +98,13 @@ const locationChange = props => {
         value={location.subdocument}
       />
       <div class="spacer" />
-      {error && (
-        <div>
+      {error && (     
           <h3> {error}</h3>
-        </div>
+          <div class="spacer" />
       )}
       {loading && (
-        <div>
           <h1>ロード中</h1>
-        </div>
+          <div class="spacer" />
       )}
 
       <Button onClick={handlePull}>編集・非公開</Button>

@@ -15,7 +15,7 @@ class Home extends Component {
     this.getfirebase = this.getfirebase.bind(this);
   }
 
-  reference = this.props.firebase.db.collection("Articles");
+  reference = this.props.firebase.db.collection("Private");
 
   async getfirebase() {
     let local = [];

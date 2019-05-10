@@ -21,38 +21,62 @@ class Edit extends React.Component {
         subcollection: '',
         subdocument: ''
       },
-      contentCounter: 0,
+      createdOn: '',
       title: '',
-      body: [{ title: 'this is title' }, { test: 'this is test' }],
+      body: [{ title: 'ロード中' }],
       error: '',
       add: '',
       loading: false,
-      title_source: ['title', 'passage', 'subpassage', 'text', 'image']
+      title_source: [
+        'firstPic',
+        'header',
+        'text',
+        'image',
+        'passage',
+        'colortext',
+        'subpassage'
+      ]
     };
   }
 
   docref = this.props.firebase.db
-    .collection('Hidden')
+    .collection('Private')
     .doc(`${this.props.match.params.id}`);
-  getfirebase = async () => {
+
+  test = () => {
+    console.log('test');
+  };
+
+  testF() {
+    console.log('test');
+  }
+
+  fetchFirebase = async () => {
     await this.docref
       .get()
       .then(data => {
+        console.log(data.data());
+        let fb_col = data.data().location.collection;
+        let fb_doc = data.data().location.document;
+        let fb_subcol = data.data().location.subcollection;
+        let fb_subdoc = data.data().location.subdocument;
         this.setState({
           location: {
-            collection: data.data().location.collection,
-            document: data.data().location.document,
-            subcollection: data.data().location.subcollection,
-            subdocument: data.data().location.subcollection
+            collection: fb_col,
+            document: fb_doc,
+            subcollection: fb_subcol ? fb_subcol : '',
+            subdocument: fb_subdoc ? fb_subdoc : ''
           },
+          createdOn: data.data().createdOn,
           title: data.data().title,
           body: data.data().body
         });
       })
       .catch(error => {
         this.setState({
-          error
+          error: 'エラーが発生しました。'
         });
+        console.log(error);
       });
   };
 
@@ -83,6 +107,15 @@ class Edit extends React.Component {
     });
   };
 
+  handleNewadd = () => {
+    if (this.state.add) {
+      this.setState({
+        body: [...this.state.body, { [this.state.add]: '' }],
+        add: ''
+      });
+    }
+  };
+
   handleSubmit = async () => {
     this.setState({
       loading: true
@@ -101,30 +134,67 @@ class Edit extends React.Component {
       .catch();
   };
 
+  handlePublish = () => {
+    let docref_publish = this.state.location.subdocument
+      ? this.props.firebase.db
+          .collection(this.state.location.collection)
+          .doc(this.state.location.document)
+          .collection(this.state.location.subcollection)
+          .doc(this.state.location.subdocument)
+      : this.props.firebase.db
+          .collection(this.state.location.collection)
+          .doc(this.state.location.document);
+    this.setState({
+      loading: true
+    });
+    docref_publish
+      .set({
+        body: this.state.body,
+        title: this.state.title,
+        createdOn: this.state.createdOn,
+        lastEdited: new Date().toISOString(),
+        location: this.state.location
+      })
+      .then(success => {
+        this.setState({
+          loading: false
+        });
+        console.log(success);
+      })
+      .catch(error => {
+        this.setState({
+          error: 'エラーが発生します。'
+        });
+        console.log(error);
+      });
+  };
+
   componentDidMount() {
-    //this.getFirebase();
+    this.fetchFirebase();
   }
 
   render() {
-    let source = this.state.title_source;
-    if (this.state.add) {
-      source = [this.state.add, ...this.state.title_source];
+    let regex = new RegExp(this.state.add);
+    let match = this.state.title_source.filter(word => word.match(regex));
+    let input = [];
+    for (let key in this.state.location) {
+      console.log(this.state.location[key]);
+      if (this.state.location[key]) {
+        input = input.concat(
+          <Input
+            style={{ width: '150px', margin: '2px' }}
+            value={this.state.location[key]}
+            disabled
+          />
+        );
+      }
+      console.log(input);
     }
     return (
       <Style>
         <div className="left">
-          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Input
-              style={{ width: '49%', marginBottom: '0' }}
-              value={'Articles'}
-              disabled
-            />
-            <Input
-              style={{ width: '48%', marginBottom: '0' }}
-              value={this.articleID}
-              disabled
-            />
-          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }} />
+          {input}
           <Input
             style={{ margin: '1em 0' }}
             name="title"
@@ -135,17 +205,10 @@ class Edit extends React.Component {
             let key = Object.keys(content)[0];
             let textArea = (
               <React.Fragment key={index}>
-                <Input
-                  size="small"
-                  placeholder={key}
-                  value={key}
-                  style={{
-                    marginTop: '1em'
-                  }}
-                />
+                <Button type="primary">{key}</Button>
                 <TextArea
                   style={{ margin: '0.5em 0' }}
-                  autosize={{ minRows: 2, maxRows: 6 }}
+                  autosize={{ minRows: 2, maxRows: 100 }}
                   name={index}
                   onChange={e => this.handleChange(key, e)}
                   value={this.state.body[index][key]}
@@ -156,7 +219,7 @@ class Edit extends React.Component {
             return textArea;
           })}
           <AutoComplete
-            dataSource={source}
+            dataSource={match}
             style={{ width: 200 }}
             onSelect={this.handleadd}
             onSearch={this.handleSearch}
@@ -164,11 +227,26 @@ class Edit extends React.Component {
             placeholder="入力/選択"
           />
           <Button
+            style={{ marginLeft: '1em' }}
+            loading={this.state.loading}
+            onClick={this.handleNewadd}
+          >
+            追加
+          </Button>
+          <br />
+          <Button
             style={{ margin: '1em 0 2em' }}
             loading={this.state.loading}
             onClick={this.handleSubmit}
           >
             更新
+          </Button>
+          <Button
+            style={{ margin: '1em 0 2em' }}
+            loading={this.state.loading}
+            onClick={this.handlePublish}
+          >
+            公開
           </Button>
         </div>
         <div className="right">

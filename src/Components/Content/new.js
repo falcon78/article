@@ -15,7 +15,7 @@ class NewArticle extends React.Component {
     this.INITIAL_STATE = {
       public: 'false',
       title: '',
-      collection: 'Articles',
+      collection: '',
       document: '',
       subcollection: '',
       subdocument: '',
@@ -32,7 +32,11 @@ class NewArticle extends React.Component {
     });
   };
 
-  async handleSubmit() {
+  handleSubmit = async () => {
+    let col = this.state.collection;
+    let doc = this.state.document;
+    let subcol = this.state.subcollection;
+    let subdoc = this.state.subdocument;
     if (
       this.state.title !== '' &&
       this.state.body !== '' &&
@@ -40,16 +44,24 @@ class NewArticle extends React.Component {
       this.state.document !== ''
     ) {
       let docref = this.props.firebase.db
-        .collection(this.state.collection)
-        .doc(this.state.document);
+        .collection('Private')
+        .doc(subdoc ? subdoc : doc);
       this.setState({
         loading: true
       });
+
       await docref
         .set({
+          location: {
+            collection: col ? col : '',
+            document: doc ? doc : '',
+            subcollection: subcol ? subcol : '',
+            subdocument: subdoc ? subdoc : ''
+          },
           title: this.state.title,
-          body: this.state.body,
-          createdOn: new Date().toISOString()
+          body: [],
+          createdOn: new Date().toISOString(),
+          NEWCONTENTTYPE: true
         })
         .then(() => {
           this.setState(this.INITIAL_STATE);
@@ -68,8 +80,9 @@ class NewArticle extends React.Component {
             loading: false
           });
           this.setState({
-            error
+            error: 'エラーが発生しました。'
           });
+          console.log(error);
         });
     } else {
       this.setState({
@@ -77,7 +90,7 @@ class NewArticle extends React.Component {
         error: '入力されていない項目があります。'
       });
     }
-  }
+  };
 
   render() {
     return (
@@ -105,17 +118,17 @@ class NewArticle extends React.Component {
             <Input
               required
               style={{ width: '49%', marginBottom: '1em' }}
-              placeholder="collection"
-              value={this.state.collection}
-              name="collection"
+              placeholder="subcollection"
+              value={this.state.subcollection}
+              name="subcollection"
               onChange={this.handleChange}
             />
             <Input
               required
               style={{ width: '48%', marginBottom: '1em' }}
-              placeholder="document"
-              value={this.state.document}
-              name="document"
+              placeholder="subdocument"
+              value={this.state.subdocument}
+              name="subdocument"
               onChange={this.handleChange}
             />
           </div>

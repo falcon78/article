@@ -12,6 +12,7 @@ import styled from 'styled-components';
 import Home from '../Content/home';
 import NotFound from '../notfound';
 import Edit from '../Content/edit';
+import locationChange from '../Content/locationChange';
 
 // import PasswordForgetPage from '../PasswordForget';
 // import HomePage from '../Home';
@@ -29,6 +30,11 @@ const App = () => {
             <Route exact path={ROUTES.SIGN_IN} component={SignInPage} />
             <Route exact path={ROUTES.NEW} component={New} />
             <Route exact path={`${ROUTES.EDIT}/:id`} component={Edit} />
+            <Route
+              exact
+              path={ROUTES.LOCATIONCHANGE}
+              component={locationChange}
+            />
             <Route component={NotFound} />
           </Switch>
         </TopPadding>

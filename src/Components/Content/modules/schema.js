@@ -8,6 +8,7 @@ const object = {
         document: "",
         subcollection: "",
         subdocument: ""
-    }
+    },
+    NEWCONTENTTYPE: "true"
     
 }

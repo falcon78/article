@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
+import { withRouter } from 'react-router-dom';
 import { AutoComplete, Button } from 'antd';
 import styled from 'styled-components';
 import { compose } from 'recompose';
-import { withAuth, withAuthorization } from '../Session';
+import { withAuthorization } from '../Session';
 import { withFirebase } from '../Firebase';
-import { withRouter } from 'react-router-dom';
 
-const locationChange = props => {
+function LocationChange({ firebase }) {
   const [location, setLocation] = useState({
     collection: '',
     document: '',
@@ -17,7 +17,7 @@ const locationChange = props => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  let pull_data;
+  let pullData;
 
   const handleChange = (value, name) => {
     setLocation({
@@ -26,50 +26,46 @@ const locationChange = props => {
     });
   };
 
-  let firebase = props.firebase.db;
   const handlePull = () => {
     setLoading('true');
-    let docref_pull = location.subdocument
-      ? props.firebase.db
+    const pullDocRef = location.subdocument
+      ? firebase.db
           .collection(location.collection)
           .doc(location.document)
           .collection(location.subcollection)
           .doc(location.subdocument)
-      : props.firebase.db
-          .collection(location.collection)
-          .doc(location.document);
-    docref_pull
-      .get()
-      .then(data => {
-        pull_data = data.data();
-        console.log(pull_data)
-        firebase
-          .collection('Private')
-          .add(pull_data)
-          .then(() => {
-            docref_pull
-              .delete()
-              .then(() => {
-              })
-              .catch(error => {
-                setError('エラーが発生しました。cant delete data');
-                setLoading(false);
-                console.log(error);
-              });
-          })
-          .catch(error => {
-            setError(
-              'エラーが発生しました。 cant copy data to private collection'
-            );
-            setLoading(false);
-            console.log(error);
-          });
-      })
-      .catch(error => {
-        setError('エラーが発生しました。 Couldnt retrieve root Document');
-        setLoading(false);
-        console.log(error);
-      });
+      : firebase.db.collection(location.collection).doc(location.document);
+    try {
+      pullDocRef
+        .get()
+        .then(data => {
+          pullData = data.data();
+          firebase
+            .collection('Private')
+            .add(pullData)
+            .then(() => {
+              pullDocRef
+                .delete()
+                .then(() => {
+                  setError('(成功) 記事を非公開にしました');
+                })
+                .catch(errorFetch => {
+                  throw new Error(errorFetch);
+                });
+            })
+            .catch(errorFetch => {
+              throw new Error(errorFetch);
+            });
+        })
+        .catch(errorFetch => {
+          throw new Error(errorFetch);
+        });
+    } catch (caughtError) {
+      setLoading(false);
+      setError(
+        `エラーが発生しました。${caughtError.name} : ${caughtError.message}`
+      );
+    }
   };
   return (
     <Style>
@@ -97,26 +93,28 @@ const locationChange = props => {
         placeholder="SubDocument"
         value={location.subdocument}
       />
-      <div class="spacer" />
-      {error && (     
-          <h3> {error}</h3>
-          <div class="spacer" />
+      <div className="spacer" />
+      {error && (
+        <div className="spacer">
+          <h3>{error}</h3>
+        </div>
       )}
       {loading && (
+        <div className="spacer">
           <h1>ロード中</h1>
-          <div class="spacer" />
+        </div>
       )}
 
       <Button onClick={handlePull}>編集・非公開</Button>
     </Style>
   );
-};
+}
 const condition = authUser => !!authUser;
 export default compose(
   withRouter,
   withAuthorization(condition),
   withFirebase
-)(locationChange);
+)(LocationChange);
 
 const Style = styled.div`
   display: flex;

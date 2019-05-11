@@ -5,6 +5,8 @@
   "dependencies": {
     "antd": "^3.16.1",
     "babel-plugin-import": "^1.11.0",
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-config-prettier": "^4.2.0",
     "firebase": "^5.9.2",
     "prop-types": "^15.7.2",
     "react": "^16.8.6",

@@ -1,14 +1,14 @@
 import React from 'react';
 import '../../App.css';
-import New from '../Content/new';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import New from '../Content/new';
+import styled from 'styled-components';
 import Navigation from '../Navigation/index';
 import * as ROUTES from '../../constants/routes';
 // import LandingPage from '../Landing';
 // import SignUpPage from '../SignUp';
 import SignInPage from '../SignIn';
 import { withAuth } from '../Session/index';
-import styled from 'styled-components';
 import Home from '../Content/home';
 import NotFound from '../notfound';
 import Edit from '../Content/edit';

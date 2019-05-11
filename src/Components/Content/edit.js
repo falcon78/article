@@ -1,3 +1,4 @@
+//@format
 import React from 'react';
 
 import { AutoComplete } from 'antd';
@@ -42,14 +43,6 @@ class Edit extends React.Component {
   docref = this.props.firebase.db
     .collection('Private')
     .doc(`${this.props.match.params.id}`);
-
-  test = () => {
-    console.log('test');
-  };
-
-  testF() {
-    console.log('test');
-  }
 
   fetchFirebase = async () => {
     await this.docref
@@ -163,7 +156,7 @@ class Edit extends React.Component {
       })
       .catch(error => {
         this.setState({
-          error: 'エラーが発生します。'
+          error: 'エラーが発生しました。'
         });
         console.log(error);
       });

@@ -50,15 +50,15 @@ function LocationChange({ firebase }) {
                   setError('(成功) 記事を非公開にしました');
                 })
                 .catch(errorFetch => {
-                  throw new Error(errorFetch);
+                  throw errorFetch;
                 });
             })
             .catch(errorFetch => {
-              throw new Error(errorFetch);
+              throw errorFetch;
             });
         })
         .catch(errorFetch => {
-          throw new Error(errorFetch);
+          throw errorFetch;
         });
     } catch (caughtError) {
       setLoading(false);

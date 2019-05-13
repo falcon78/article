@@ -27,7 +27,16 @@ function LocationChange({ firebase }) {
   };
 
   const handlePull = async () => {
-    setLoading('true');
+    if (
+      !(location.collection && location.document) ||
+      !(
+        location.collection &&
+        location.document &&
+        location.subcollection &&
+        location.subdocument
+      )
+    )
+      setLoading('true');
     const pullDocRef = location.subdocument
       ? firebase.db
           .collection(location.collection)

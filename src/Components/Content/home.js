@@ -3,6 +3,7 @@ import ArticleCard from '../Content/modules/ArticleCard';
 import { withFirebase } from '../Firebase/index';
 import { withAuthorization } from '../Session/index';
 import { compose } from 'recompose';
+import Loading from './modules/loading';
 
 const uuidv4 = require('uuid/v4');
 
@@ -10,7 +11,8 @@ class Home extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      data: []
+      data: [],
+      initialLoad: true
     };
   }
 
@@ -30,7 +32,8 @@ class Home extends Component {
         console.log(err);
       });
     this.setState({
-      data: local
+      data: local,
+      initialLoad: false
     });
   };
   componentDidMount() {
@@ -38,6 +41,9 @@ class Home extends Component {
   }
 
   render() {
+    if (this.state.initialLoad) {
+  return <Loading />;
+    }
     return (
       <div style={{ display: 'flex', flexWrap: 'wrap' }}>
         {this.state.data.map(data => {

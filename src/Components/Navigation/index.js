@@ -1,11 +1,11 @@
 import { Layout, Menu } from 'antd';
-import { Link } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 import React from 'react';
+import styled from 'styled-components';
 import * as ROUTES from '../../constants/routes';
 import { AuthUserContext } from '../Session/index';
 import SignOutButton from '../SignOut/signOutButton';
-import styled from 'styled-components';
-import { withRouter } from 'react-router-dom';
+
 const { Header } = Layout;
 
 const Navigation = props => (
@@ -18,10 +18,10 @@ const Navigation = props => (
   </div>
 );
 
-const NavigationAuth = props => {
-  let regex = /\/edit\/.*/;
+const NavigationAuth = ({ location }) => {
+  const regex = /\/edit\/.*/;
   let SelectedMenu = '1';
-  let path = props.location.pathname;
+  const path = location.pathname;
   if (path === ROUTES.HOME) {
     SelectedMenu = '1';
   } else if (path === ROUTES.NEW) {

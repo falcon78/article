@@ -1,16 +1,17 @@
 //@format
 import React from 'react';
-
 import { AutoComplete } from 'antd';
 import { withAuthorization } from '../Session/index';
 import { withFirebase } from '../Firebase/index';
 import { withRouter } from 'react-router-dom';
 import { compose } from 'recompose';
-import { Input, Button } from 'antd';
+import { Input, Button, Modal } from 'antd';
 import styled from 'styled-components';
 import ArticleView from './modules/viewArticle';
+import Loading from './modules/loading';
+import * as ROUTES from '../../constants/routes';
 const { TextArea } = Input;
-const uuidv4 = require('uuid/v4');
+// const uuidv4 = require('uuid/v4');
 
 class Edit extends React.Component {
   constructor(props) {
@@ -24,7 +25,7 @@ class Edit extends React.Component {
       },
       createdOn: '',
       title: '',
-      body: [{ title: 'ロード中' }],
+      body: [],
       error: '',
       add: '',
       loading: false,
@@ -36,7 +37,11 @@ class Edit extends React.Component {
         'passage',
         'colortext',
         'subpassage'
-      ]
+      ],
+      initialLoad: true,
+      deleteModal: false,
+      confirmLoading: false,
+      deleteError: ''
     };
   }
 
@@ -62,7 +67,8 @@ class Edit extends React.Component {
           },
           createdOn: data.data().createdOn,
           title: data.data().title,
-          body: data.data().body
+          body: data.data().body,
+          initialLoad: false
         });
       })
       .catch(error => {
@@ -148,25 +154,70 @@ class Edit extends React.Component {
         lastEdited: new Date().toISOString(),
         location: this.state.location
       })
-      .then(success => {
-        this.setState({
-          loading: false
-        });
-        console.log(success);
+      .then(() => {
+        this.docref
+          .delete()
+          .then(() => {
+            this.setState({
+              loading: false
+            });
+            this.props.history.push(ROUTES.LANDING);
+          })
+          .catch(error => {
+            this.setState({
+              error: 'エラーが発生しました。'
+            });
+            throw error;
+          });
       })
       .catch(error => {
         this.setState({
           error: 'エラーが発生しました。'
         });
-        console.log(error);
+        throw error;
       });
   };
 
+  handleShowModal = () => {
+    this.setState({
+      deleteModal: !this.state.deleteModal
+    });
+  };
+
+  handleDelete = () => {
+    this.setState({
+      confirmLoading: true
+    });
+    this.docref
+      .delete()
+      .then(() => {
+        this.setState({
+          deleteError: '削除しました。'
+        });
+        setTimeout(() => {
+          this.setState({
+            confirmLoading: false,
+            deleteModal: false
+          });
+        }, 2000);
+        this.props.history.push(ROUTES.LANDING);
+      })
+      .catch(error => {
+        this.setState({
+          deleteError: '削除できませんでした。',
+          confirmLoading: false
+        });
+        throw error;
+      });
+  };
   componentDidMount() {
     this.fetchFirebase();
   }
 
   render() {
+    if (this.state.initialLoad) {
+      return <Loading />;
+    }
     let regex = new RegExp(this.state.add);
     let match = this.state.title_source.filter(word => word.match(regex));
     let input = [];
@@ -184,71 +235,85 @@ class Edit extends React.Component {
       console.log(input);
     }
     return (
-      <Style>
-        <div className="left">
-          <div style={{ display: 'flex', justifyContent: 'space-between' }} />
-          {input}
-          <Input
-            style={{ margin: '1em 0' }}
-            name="title"
-            onChange={this.handleChangeTitle}
-            value={this.state.title}
-          />
-          {this.state.body.map((content, index) => {
-            let key = Object.keys(content)[0];
-            let textArea = (
-              <React.Fragment key={index}>
-                <Button type="primary">{key}</Button>
-                <TextArea
-                  style={{ margin: '0.5em 0' }}
-                  autosize={{ minRows: 2, maxRows: 100 }}
-                  name={index}
-                  onChange={e => this.handleChange(key, e)}
-                  value={this.state.body[index][key]}
-                />
-              </React.Fragment>
-            );
-            console.log(content, index);
-            return textArea;
-          })}
-          <AutoComplete
-            dataSource={match}
-            style={{ width: 200 }}
-            onSelect={this.handleadd}
-            onSearch={this.handleSearch}
-            value={this.state.add}
-            placeholder="入力/選択"
-          />
-          <Button
-            style={{ marginLeft: '1em' }}
-            loading={this.state.loading}
-            onClick={this.handleNewadd}
-          >
-            追加
-          </Button>
-          <br />
-          <Button
-            style={{ margin: '1em 0 2em' }}
-            loading={this.state.loading}
-            onClick={this.handleSubmit}
-          >
-            更新
-          </Button>
-          <Button
-            style={{ margin: '1em 0 2em' }}
-            loading={this.state.loading}
-            onClick={this.handlePublish}
-          >
-            公開
-          </Button>
-        </div>
-        <div className="right">
-          <ArticleView
-            style={{ marginTop: '1em' }}
-            articledata={this.state.body}
-          />
-        </div>
-      </Style>
+      <React.Fragment>
+        <Style>
+          <div className="left">
+            <div style={{ display: 'flex', justifyContent: 'space-between' }} />
+            {input}
+            <Input
+              style={{ margin: '1em 0' }}
+              name="title"
+              onChange={this.handleChangeTitle}
+              value={this.state.title}
+            />
+            {this.state.body.map((content, index) => {
+              let key = Object.keys(content)[0];
+              let textArea = (
+                <React.Fragment key={index}>
+                  <Button type="primary">{key}</Button>
+                  <TextArea
+                    style={{ margin: '0.5em 0' }}
+                    autosize={{ minRows: 2, maxRows: 100 }}
+                    name={index}
+                    onChange={e => this.handleChange(key, e)}
+                    value={this.state.body[index][key]}
+                  />
+                </React.Fragment>
+              );
+              console.log(content, index);
+              return textArea;
+            })}
+            <AutoComplete
+              dataSource={match}
+              style={{ width: 200 }}
+              onSelect={this.handleadd}
+              onSearch={this.handleSearch}
+              value={this.state.add}
+              placeholder="入力/選択"
+            />
+            <Button style={{ marginLeft: '1em' }} onClick={this.handleNewadd}>
+              追加
+            </Button>
+            <br />
+            <Button
+              style={{ margin: '1em 2px 5px' }}
+              onClick={this.handleSubmit}
+            >
+              更新
+            </Button>
+            <Button
+              style={{ margin: '1em 2px 5px' }}
+              onClick={this.handlePublish}
+            >
+              公開
+            </Button>
+            <Button
+              style={{ margin: '1em 2px 5px' }}
+              onClick={this.handleShowModal}
+              type="danger"
+            >
+              削除
+            </Button>
+            <Modal
+              title="削除"
+              visible={this.state.deleteModal}
+              onOk={this.handleDelete}
+              confirmLoading={this.state.confirmLoading}
+              onCancel={this.handleShowModal}
+            >
+              <p>{'本当に削除しますか？'}</p>
+              {this.state.deleteError && <h3>this.state.deleteError</h3>}
+            </Modal>
+            {this.state.loading && <Loading inline />}
+          </div>
+          <div className="right">
+            <ArticleView
+              style={{ marginTop: '1em' }}
+              articledata={this.state.body}
+            />
+          </div>
+        </Style>
+      </React.Fragment>
     );
   }
 }
@@ -262,6 +327,7 @@ export default compose(
 
 const Style = styled.div`
   display: flex;
+  justify-content: center;
 .left {
     margin: 0.5em;
     width: 45vw;

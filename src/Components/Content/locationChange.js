@@ -26,7 +26,7 @@ function LocationChange({ firebase }) {
     });
   };
 
-  const handlePull = () => {
+  const handlePull = async () => {
     setLoading('true');
     const pullDocRef = location.subdocument
       ? firebase.db
@@ -36,11 +36,14 @@ function LocationChange({ firebase }) {
           .doc(location.subdocument)
       : firebase.db.collection(location.collection).doc(location.document);
     try {
-      pullDocRef
+      await pullDocRef
         .get()
         .then(data => {
           pullData = data.data();
-          firebase
+          if (!pullData) {
+            throw new Error('データが存在しません。');
+          }
+          firebase.db
             .collection('Private')
             .add(pullData)
             .then(() => {

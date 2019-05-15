@@ -6,6 +6,7 @@ import { compose } from 'recompose';
 import { withFirebase } from '../Firebase';
 import { withRouter } from 'react-router-dom';
 import { Input, Button } from 'antd/lib/index';
+import Loading from './modules/loading';
 
 const { TextArea } = Input;
 
@@ -150,6 +151,7 @@ class NewArticle extends React.Component {
           >
             追加
           </Button>
+          {this.state.loading && <Loading inline />}
         </div>
         <div className={'right'}>
           <ArticleView articledata={this.state.body} />

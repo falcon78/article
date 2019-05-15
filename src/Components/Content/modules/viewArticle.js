@@ -1,10 +1,10 @@
 import React from 'react';
 import Markdown from 'react-markdown';
 
-const ArticleView = props => {
+const ArticleView = ({articledata}) => {
   return (
     <div>
-      <Markdown source={props.articledata} escapeHtml={false} />
+      <Markdown source={articledata} escapeHtml={false} />
     </div>
   );
 };

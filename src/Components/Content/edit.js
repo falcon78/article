@@ -1,17 +1,17 @@
 //@format
 import React from 'react';
-import { AutoComplete } from 'antd';
+import { AutoComplete, Button, Input, Modal } from 'antd';
 import { withAuthorization } from '../Session/index';
 import { withFirebase } from '../Firebase/index';
 import { withRouter } from 'react-router-dom';
 import { compose } from 'recompose';
-import { Input, Button, Modal } from 'antd';
 import styled from 'styled-components';
 import ArticleView from './modules/viewArticle';
 import Loading from './modules/loading';
 import * as ROUTES from '../../constants/routes';
+
 const { TextArea } = Input;
-// const uuidv4 = require('uuid/v4');
+const uuidv4 = require('uuid/v4');
 
 class Edit extends React.Component {
   constructor(props) {
@@ -80,7 +80,7 @@ class Edit extends React.Component {
   };
 
   handleChange = (key, event) => {
-    let bodyLocal = this.state.body;
+    let bodyLocal = [...this.state.body];
     bodyLocal[event.target.name][key] = event.target.value;
     this.setState(prevState => ({
       body: bodyLocal
@@ -100,16 +100,18 @@ class Edit extends React.Component {
   };
 
   handleadd = value => {
+    const idKey = uuidv4();
     this.setState({
-      body: [...this.state.body, { [value]: '' }],
+      body: [...this.state.body, { [value]: '', idKey }],
       add: ''
     });
   };
 
   handleNewadd = () => {
+    const idKey = uuidv4();
     if (this.state.add) {
       this.setState({
-        body: [...this.state.body, { [this.state.add]: '' }],
+        body: [...this.state.body, { [this.state.add]: '', idKey }],
         add: ''
       });
     }
@@ -152,7 +154,8 @@ class Edit extends React.Component {
         title: this.state.title,
         createdOn: this.state.createdOn,
         lastEdited: new Date().toISOString(),
-        location: this.state.location
+        location: this.state.location,
+        NEWCONTENTTYPE: true
       })
       .then(() => {
         this.docref
@@ -210,6 +213,41 @@ class Edit extends React.Component {
         throw error;
       });
   };
+
+  handleOrder = (direction, index) => {
+    if (direction === 'up') {
+      if (index !== 0) {
+        let localBody = [...this.state.body];
+        console.log('moved');
+        let selectedElement = localBody[index];
+        localBody[index] = localBody[index - 1];
+        localBody[index - 1] = selectedElement;
+        this.setState({
+          body: localBody
+        });
+      }
+    } else {
+      if (index !== this.state.body.length - 1) {
+        let localBody = [...this.state.body];
+        console.log('moved');
+        let selectedElement = localBody[index];
+        localBody[index] = localBody[index + 1];
+        localBody[index + 1] = selectedElement;
+        this.setState({
+          body: localBody
+        });
+      }
+    }
+  };
+
+  handleDeleteItem = index => {
+    let localBody = [...this.state.body];
+    let newArray = localBody.filter((content, i) => index !== i);
+    this.setState({
+      body: newArray
+    });
+  };
+
   componentDidMount() {
     this.fetchFirebase();
   }
@@ -229,6 +267,7 @@ class Edit extends React.Component {
             style={{ width: '150px', margin: '2px' }}
             value={this.state.location[key]}
             disabled
+            key = {uuidv4()}
           />
         );
       }
@@ -247,25 +286,66 @@ class Edit extends React.Component {
               value={this.state.title}
             />
             {this.state.body.map((content, index) => {
-              let key = Object.keys(content)[0];
+              console.log(content.idKey);
+              let articleKey = Object.keys(content)[0];
+              if (articleKey === 'idKey') {
+                articleKey = Object.keys(content)[1];
+              }
               let textArea = (
-                <React.Fragment key={index}>
-                  <Button type="primary">{key}</Button>
+                <div key={content.idKey}>
+                  <div
+                    style={{
+                      marginTop: '10px',
+                      width: '100%',
+                      display: 'flex',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <Button type="primary">{articleKey}</Button>
+                    <div
+                      style={{
+                        display: 'flex',
+                        width: '120px',
+                        justifyContent: 'space-around'
+                      }}
+                    >
+                      <Button
+                        type={'primary'}
+                        shape={'circle'}
+                        icon={'arrow-up'}
+                        onClick={() => this.handleOrder('up', index)}
+                      />
+                      <Button
+                        type={'primary'}
+                        shape={'circle'}
+                        icon={'arrow-down'}
+                        onClick={() => this.handleOrder('down', index)}
+                      />
+                      <Button
+                        type={'danger'}
+                        shape={'circle'}
+                        icon={'delete'}
+                        onClick={() => {
+                          this.handleDeleteItem(index);
+                        }}
+                      />
+                    </div>
+                  </div>
+
                   <TextArea
-                    style={{ margin: '0.5em 0' }}
+                    style={{ margin: '0.5em 0', marginTop: '2px' }}
                     autosize={{ minRows: 2, maxRows: 100 }}
                     name={index}
-                    onChange={e => this.handleChange(key, e)}
-                    value={this.state.body[index][key]}
+                    onChange={e => this.handleChange(articleKey, e)}
+                    value={this.state.body[index][articleKey]}
                   />
-                </React.Fragment>
+                </div>
               );
-              console.log(content, index);
               return textArea;
             })}
             <AutoComplete
               dataSource={match}
-              style={{ width: 200 }}
+              style={{ width: 200, marginTop: '1em' }}
               onSelect={this.handleadd}
               onSearch={this.handleSearch}
               value={this.state.add}
@@ -275,6 +355,7 @@ class Edit extends React.Component {
               追加
             </Button>
             <br />
+            {this.state.loading && <Loading inline />}
             <Button
               style={{ margin: '1em 2px 5px' }}
               onClick={this.handleSubmit}
@@ -288,7 +369,7 @@ class Edit extends React.Component {
               公開
             </Button>
             <Button
-              style={{ margin: '1em 2px 5px' }}
+              style={{ margin: '1em 2px 2em' }}
               onClick={this.handleShowModal}
               type="danger"
             >
@@ -300,11 +381,11 @@ class Edit extends React.Component {
               onOk={this.handleDelete}
               confirmLoading={this.state.confirmLoading}
               onCancel={this.handleShowModal}
+              centered
             >
               <p>{'本当に削除しますか？'}</p>
               {this.state.deleteError && <h3>this.state.deleteError</h3>}
             </Modal>
-            {this.state.loading && <Loading inline />}
           </div>
           <div className="right">
             <ArticleView
@@ -328,20 +409,23 @@ export default compose(
 const Style = styled.div`
   display: flex;
   justify-content: center;
-.left {
+  .left {
     margin: 0.5em;
     width: 45vw;
     height: 90vh;
   }
   .right {
-  margin:0.5em
-  margin-top: 2em;
-  margin-left: 3em;
+    margin: 2em 0.5em 0.5em 3em;
     width: 45vw;
     height: 90vh;
   }
-  .container{
+  .container {
     display: flex;
     justify-content: space-between;
   }
 `;
+
+
+int a = 0;
+a = function(); //6
+console.log(a); 0

@@ -83,9 +83,9 @@ class Edit extends React.Component {
   handleChange = (key, event) => {
     let bodyLocal = [...this.state.body];
     bodyLocal[event.target.name][key] = event.target.value;
-    this.setState(prevState => ({
+    this.setState({
       body: bodyLocal
-    }));
+    });
   };
 
   handleChangeTitle = event => {
@@ -100,7 +100,7 @@ class Edit extends React.Component {
     });
   };
 
-  handleadd = value => {
+  handleAdd = value => {
     const idKey = uuidv4();
     this.setState({
       body: [
@@ -119,7 +119,7 @@ class Edit extends React.Component {
     });
   };
 
-  handleNewadd = () => {
+  handleNewAdd = () => {
     const idKey = uuidv4();
     if (this.state.add) {
       this.setState({
@@ -271,8 +271,8 @@ class Edit extends React.Component {
     let regex = new RegExp(this.state.add);
     let match = this.state.title_source.filter(word => word.match(regex));
     let input = [];
-    for (let key in this.state.location) {
-      console.log(this.state.location[key]);
+    let keys = Object.keys(this.state.location);
+    keys.forEach(key => {
       if (this.state.location[key]) {
         input = input.concat(
           <Input
@@ -284,7 +284,7 @@ class Edit extends React.Component {
         );
       }
       console.log(input);
-    }
+    });
     return (
       <React.Fragment>
         <Style>
@@ -358,12 +358,12 @@ class Edit extends React.Component {
             <AutoComplete
               dataSource={match}
               style={{ width: 200, marginTop: '1em' }}
-              onSelect={this.handleadd}
+              onSelect={this.handleAdd}
               onSearch={this.handleSearch}
               value={this.state.add}
               placeholder="入力/選択"
             />
-            <Button style={{ marginLeft: '1em' }} onClick={this.handleNewadd}>
+            <Button style={{ marginLeft: '1em' }} onClick={this.handleNewAdd}>
               追加
             </Button>
             <br />

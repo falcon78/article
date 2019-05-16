@@ -17,6 +17,7 @@ function LocationChange({ firebase }) {
     subdocument: ''
   });
 
+  const [textInput, setInput] = useState('');
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -24,20 +25,26 @@ function LocationChange({ firebase }) {
 
   const matchRegex = /^\/.*/gim;
 
+  const handleInputChange = event => {
+    setLocation({
+      ...location,
+      [event.target.name]: event.target.value
+    });
+  };
+
   const handleChange = event => {
-    const inputText = event.target.value;
-    if (inputText.match(matchRegex)) {
-      const inputArray = inputText.split('/').filter(value => !!value);
+    let inputValue = event.target.value;
+    setInput(inputValue);
+    if (inputValue.match(matchRegex)) {
+      const inputArray = inputValue.split('/').filter(value => !!value);
       console.log(inputArray);
       if (inputArray.length === 2) {
         setLocation({
-          ...location,
           collection: inputArray[0],
           document: inputArray[1]
         });
       } else if (inputArray.length === 4) {
         setLocation({
-          ...location,
           collection: inputArray[0],
           document: inputArray[1],
           subcollection: inputArray[2],
@@ -119,29 +126,35 @@ function LocationChange({ firebase }) {
       setLoading(false);
     }
   };
+  const keys = Object.keys(location);
   let input = [];
-  for (let key in location) {
-    if (location[key]) {
-      input = input.concat(
-        <Input
-          key={uuidv4()}
-          style={{ width: '22vw', margin: '2px' }}
-          value={location[key]}
-          disabled
-        />
-      );
-    }
-  }
+  keys.forEach(key => {
+    input = input.concat(
+      <Input
+        style={{ width: '22vw', margin: '2px' }}
+        value={location[key]}
+        name={key}
+        onChange={handleInputChange}
+      />
+    );
+  });
+
   return (
     <Style>
-      <Input placeholder="パスを入力してください。" onChange={handleChange} />
+      <Input
+        value={textInput}
+        placeholder="パスを入力してください。"
+        onChange={handleChange}
+      />
       <div className="spacer" />
       {input}
       <br />
       {!error && loading && (
-        <div style ={{
+        <div
+          style={{
             width: '100vw'
-        }}>
+          }}
+        >
           <Loading />
         </div>
       )}

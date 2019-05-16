@@ -9,6 +9,7 @@ import { Input, Button } from 'antd/lib/index';
 import Loading from './modules/loading';
 
 const { TextArea } = Input;
+const uuidv4= require('uuid/v4');
 
 class NewArticle extends React.Component {
   constructor(props) {
@@ -60,7 +61,7 @@ class NewArticle extends React.Component {
             subdocument: subdoc ? subdoc : ''
           },
           title: this.state.title,
-          body: [],
+          body: [{title: "", idKey: uuidv4()},{firstPic: "[テキスト](URL)", idKey: uuidv4()}],
           createdOn: new Date().toISOString(),
           NEWCONTENTTYPE: true
         })
@@ -177,12 +178,11 @@ const Style = styled.div`
     height: 90vh;
   }
   .right {
-  margin:0.8em
-  margin-left: 3em;
+    margin: 0.8em 0.8em 0.8em 3em;
     width: 45vw;
     height: 90vh;
   }
-  .container{
+  .container {
     display: flex;
     justify-content: space-between;
   }

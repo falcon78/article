@@ -1,6 +1,6 @@
-import React from "react";
-import { Input } from "antd/lib/index";
-import styled from "styled-components";
+import React from 'react';
+import { Input } from 'antd/lib/index';
+import styled from 'styled-components';
 
 const { TextArea } = Input;
 
@@ -8,8 +8,8 @@ class InputField extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      local_title: "",
-      local_body: ""
+      local_title: '',
+      local_body: ''
     };
     this.handleChange = this.handleChange.bind(this);
   }
@@ -24,13 +24,13 @@ class InputField extends React.Component {
     return (
       <Style>
         <Input
-          className={"margin"}
+          className="margin"
           name="local_title"
           value={this.state.local_title}
           onChange={this.handleChange}
         />
         <TextArea
-          className={"margin"}
+          className="margin"
           name="local_body"
           value={this.state.local_body}
           onChange={this.handleChange}

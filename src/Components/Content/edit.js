@@ -9,6 +9,7 @@ import styled from 'styled-components';
 import ArticleView from './modules/viewArticle';
 import Loading from './modules/loading';
 import * as ROUTES from '../../constants/routes';
+import MarkdownArticle from './supporters/container/organisms/markdownArticle';
 
 const { TextArea } = Input;
 const uuidv4 = require('uuid/v4');
@@ -31,12 +32,12 @@ class Edit extends React.Component {
       loading: false,
       title_source: [
         'firstPic',
-        'header',
+        'title',
         'text',
         'image',
         'passage',
         'colortext',
-        'subpassage'
+        'subhead'
       ],
       initialLoad: true,
       deleteModal: false,
@@ -102,7 +103,18 @@ class Edit extends React.Component {
   handleadd = value => {
     const idKey = uuidv4();
     this.setState({
-      body: [...this.state.body, { [value]: '', idKey }],
+      body: [
+        ...this.state.body,
+        {
+          [value]:
+            value === 'image' || value === 'firstPic'
+              ? '[テキスト](URL)'
+              : value === 'colortext'
+              ? 'テキスト  \\red'
+              : '',
+          idKey
+        }
+      ],
       add: ''
     });
   };
@@ -267,7 +279,7 @@ class Edit extends React.Component {
             style={{ width: '150px', margin: '2px' }}
             value={this.state.location[key]}
             disabled
-            key = {uuidv4()}
+            key={uuidv4()}
           />
         );
       }
@@ -388,9 +400,9 @@ class Edit extends React.Component {
             </Modal>
           </div>
           <div className="right">
-            <ArticleView
+            <MarkdownArticle
               style={{ marginTop: '1em' }}
-              articledata={this.state.body}
+              body={this.state.body}
             />
           </div>
         </Style>
@@ -424,8 +436,3 @@ const Style = styled.div`
     justify-content: space-between;
   }
 `;
-
-
-int a = 0;
-a = function(); //6
-console.log(a); 0

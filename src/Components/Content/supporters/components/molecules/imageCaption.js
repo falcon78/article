@@ -19,6 +19,7 @@ const ImageCaption = ({ image, caption }) => {
 export default ImageCaption;
 
 const CaptionLike = styled.div`
+  text-align: center;
   font-size: 11px;
   color: #515151;
   line-height: 1.5;

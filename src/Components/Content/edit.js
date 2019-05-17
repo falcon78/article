@@ -18,20 +18,21 @@ class Edit extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      image: '',
+      lead: '',
       location: {
         collection: '',
         document: '',
         subcollection: '',
         subdocument: ''
       },
-      createdOn: '',
       title: '',
-      body: [],
+      section: [],
       error: '',
       add: '',
       loading: false,
       title_source: [
-        'firstPic',
+
         'title',
         'text',
         'image',
@@ -66,9 +67,10 @@ class Edit extends React.Component {
             subcollection: fb_subcol ? fb_subcol : '',
             subdocument: fb_subdoc ? fb_subdoc : ''
           },
-          createdOn: data.data().createdOn,
           title: data.data().title,
-          body: data.data().body,
+          section: data.data().section,
+          lead: data.data().lead,
+          image: data.data().image,
           initialLoad: false
         });
       })
@@ -80,17 +82,17 @@ class Edit extends React.Component {
       });
   };
 
-  handleChange = (key, event) => {
-    let bodyLocal = [...this.state.body];
-    bodyLocal[event.target.name][key] = event.target.value;
+  handleChangeSection = (key, event) => {
+    let sectionLocal = [...this.state.section];
+    sectionLocal[event.target.name][key] = event.target.value;
     this.setState({
-      body: bodyLocal
+      section: sectionLocal
     });
   };
 
-  handleChangeTitle = event => {
+  handleChange = event => {
     this.setState({
-      title: event.target.value
+      [event.target.name]: event.target.value
     });
   };
 
@@ -101,10 +103,11 @@ class Edit extends React.Component {
   };
 
   handleAdd = value => {
+
     const idKey = uuidv4();
     this.setState({
-      body: [
-        ...this.state.body,
+      section: [
+        ...this.state.section,
         {
           [value]:
             value === 'image' || value === 'firstPic'
@@ -117,26 +120,29 @@ class Edit extends React.Component {
       ],
       add: ''
     });
+    this.handleSubmit();
   };
 
   handleNewAdd = () => {
     const idKey = uuidv4();
     if (this.state.add) {
       this.setState({
-        body: [...this.state.body, { [this.state.add]: '', idKey }],
+        section: [...this.state.section, { [this.state.add]: '', idKey }],
         add: ''
       });
     }
   };
 
-  handleSubmit = async () => {
+  handleSubmit = () => {
     this.setState({
       loading: true
     });
-    await this.docref
+    this.docref
       .update({
         title: this.state.title,
-        body: this.state.body,
+        image: this.state.image,
+        lead: this.state.image,
+        section: this.state.section,
         lastEdited: new Date().toISOString()
       })
       .then(() => {
@@ -147,7 +153,7 @@ class Edit extends React.Component {
       .catch();
   };
 
-  handlePublish = () => {
+  handlePublish = async () => {
     let docref_publish = this.state.location.subdocument
       ? this.props.firebase.db
           .collection(this.state.location.collection)
@@ -160,36 +166,47 @@ class Edit extends React.Component {
     this.setState({
       loading: true
     });
-    docref_publish
-      .set({
-        body: this.state.body,
+
+    this.docref
+      .update({
         title: this.state.title,
-        createdOn: this.state.createdOn,
-        lastEdited: new Date().toISOString(),
-        location: this.state.location,
-        NEWCONTENTTYPE: true
+        image: this.state.image,
+        lead: this.state.image,
+        section: this.state.section,
+        lastEdited: new Date().toISOString()
       })
       .then(() => {
-        this.docref
-          .delete()
-          .then(() => {
-            this.setState({
-              loading: false
+        this.docref.get().then(data => {
+          docref_publish
+            .set(data.data())
+            .then(() => {
+              this.docref
+                .delete()
+                .then(() => {
+                  this.setState({
+                    loading: false
+                  });
+                  this.props.history.push(ROUTES.LANDING);
+                })
+                .catch(error => {
+                  this.setState({
+                    error: 'エラーが発生しました。'
+                  });
+                  throw error;
+                });
+            })
+            .catch(error => {
+              this.setState({
+                error: 'エラーが発生しました。'
+              });
+              throw error;
             });
-            this.props.history.push(ROUTES.LANDING);
-          })
-          .catch(error => {
-            this.setState({
-              error: 'エラーが発生しました。'
-            });
-            throw error;
-          });
-      })
-      .catch(error => {
-        this.setState({
-          error: 'エラーが発生しました。'
         });
-        throw error;
+      })
+      .catch(() => {
+        this.setState({
+          error: ' エラーが発生しました。'
+        });
       });
   };
 
@@ -229,34 +246,34 @@ class Edit extends React.Component {
   handleOrder = (direction, index) => {
     if (direction === 'up') {
       if (index !== 0) {
-        let localBody = [...this.state.body];
+        let localsection = [...this.state.section];
         console.log('moved');
-        let selectedElement = localBody[index];
-        localBody[index] = localBody[index - 1];
-        localBody[index - 1] = selectedElement;
+        let selectedElement = localsection[index];
+        localsection[index] = localsection[index - 1];
+        localsection[index - 1] = selectedElement;
         this.setState({
-          body: localBody
+          section: localsection
         });
       }
     } else {
-      if (index !== this.state.body.length - 1) {
-        let localBody = [...this.state.body];
+      if (index !== this.state.section.length - 1) {
+        let localsection = [...this.state.section];
         console.log('moved');
-        let selectedElement = localBody[index];
-        localBody[index] = localBody[index + 1];
-        localBody[index + 1] = selectedElement;
+        let selectedElement = localsection[index];
+        localsection[index] = localsection[index + 1];
+        localsection[index + 1] = selectedElement;
         this.setState({
-          body: localBody
+          section: localsection
         });
       }
     }
   };
 
   handleDeleteItem = index => {
-    let localBody = [...this.state.body];
-    let newArray = localBody.filter((content, i) => index !== i);
+    let localsection = [...this.state.section];
+    let newArray = localsection.filter((content, i) => index !== i);
     this.setState({
-      body: newArray
+      section: newArray
     });
   };
 
@@ -294,10 +311,44 @@ class Edit extends React.Component {
             <Input
               style={{ margin: '1em 0' }}
               name="title"
-              onChange={this.handleChangeTitle}
+              onChange={this.handleChange}
               value={this.state.title}
             />
-            {this.state.body.map((content, index) => {
+            <div
+              style={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'space-between'
+              }}
+            >
+              <Button type="primary">リード文書 (カード)</Button>
+            </div>
+            <TextArea
+              style={{ margin: '0.5em 0', marginTop: '2px' }}
+              autosize={{ minRows: 2, maxRows: 100 }}
+              name="lead"
+              onChange={this.handleChange}
+              value={this.state.lead}
+            />
+
+            <div
+              style={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'space-between'
+              }}
+            >
+              <Button type="primary">メイン画像</Button>
+            </div>
+            <TextArea
+              style={{ margin: '0.5em 0', marginTop: '2px' }}
+              autosize={{ minRows: 2, maxRows: 100 }}
+              name="image"
+              onChange={this.handleChange}
+              value={this.state.image}
+            />
+
+            {this.state.section.map((content, index) => {
               console.log(content.idKey);
               let articleKey = Object.keys(content)[0];
               if (articleKey === 'idKey') {
@@ -348,8 +399,8 @@ class Edit extends React.Component {
                     style={{ margin: '0.5em 0', marginTop: '2px' }}
                     autosize={{ minRows: 2, maxRows: 100 }}
                     name={index}
-                    onChange={e => this.handleChange(articleKey, e)}
-                    value={this.state.body[index][articleKey]}
+                    onChange={e => this.handleChangeSection(articleKey, e)}
+                    value={this.state.section[index][articleKey]}
                   />
                 </div>
               );
@@ -368,10 +419,12 @@ class Edit extends React.Component {
             </Button>
             <br />
             {this.state.loading && <Loading inline />}
+            {this.state.error && <p>{this.state.error}</p>}
             <Button
               style={{ margin: '1em 2px 5px' }}
               onClick={this.handleSubmit}
             >
+
               更新
             </Button>
             <Button
@@ -402,7 +455,7 @@ class Edit extends React.Component {
           <div className="right">
             <MarkdownArticle
               style={{ marginTop: '1em' }}
-              body={this.state.body}
+              section={this.state.section}
             />
           </div>
         </Style>

@@ -11,8 +11,8 @@ const uuidv4 = require('uuid/v4');
 const picRegex = /\[(.*)]\((.*)\)/;
 
 const MarkdownArticle = props => {
-  const renderView = props.body.map(section => {
-    let articleElement = '';
+  const renderView = props.section.map(section => {
+    let articleElement = [];
     if (section.text) {
       articleElement = articleElement.concat(
         <div className="text" key={uuidv4()}>
@@ -70,7 +70,13 @@ const MarkdownArticle = props => {
     }
     return articleElement;
   });
-  return renderView || <p />;
+  return (
+    <Style>
+      {renderView.map(element => (
+        <div className="margin">{element}</div>
+      ))}
+    </Style>
+  );
 };
 
 /* <div>
@@ -79,6 +85,20 @@ const MarkdownArticle = props => {
         ))}
 </div> */
 export default MarkdownArticle;
+
+const Style = styled.div`
+  @import url('https://fonts.googleapis.com/css?family=Noto+Sans+JP&display=swap');
+  font-family: 'Noto Sans JP', sans-serif;
+  .margin {
+    margin: 1em;
+  }
+  border-style: solid;
+  border-color: antiquewhite;
+  border-radius: 10px;
+  -moz-box-shadow: 0 0 3px #ccc;
+-webkit-box-shadow: 0 0 3px #ccc;
+box-shadow: 0 0 10px #ccc;
+`;
 
 const MarginBottom = styled.div`
   margin-bottom: 20px;

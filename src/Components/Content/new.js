@@ -104,7 +104,7 @@ class NewArticle extends React.Component {
           this.setState({
             error: 'エラーが発生しました。'
           });
-          console.log(error);
+
         });
     } else {
       this.setState({

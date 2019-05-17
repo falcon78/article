@@ -32,7 +32,6 @@ class Edit extends React.Component {
       add: '',
       loading: false,
       title_source: [
-
         'title',
         'text',
         'image',
@@ -55,7 +54,7 @@ class Edit extends React.Component {
     await this.docref
       .get()
       .then(data => {
-        console.log(data.data());
+
         let fb_col = data.data().location.collection;
         let fb_doc = data.data().location.document;
         let fb_subcol = data.data().location.subcollection;
@@ -78,7 +77,7 @@ class Edit extends React.Component {
         this.setState({
           error: 'エラーが発生しました。'
         });
-        console.log(error);
+
       });
   };
 
@@ -103,7 +102,6 @@ class Edit extends React.Component {
   };
 
   handleAdd = value => {
-
     const idKey = uuidv4();
     this.setState({
       section: [
@@ -113,7 +111,7 @@ class Edit extends React.Component {
             value === 'image' || value === 'firstPic'
               ? '[テキスト](URL)'
               : value === 'colortext'
-              ? 'テキスト  \\red'
+              ? 'テキスト  \n\n\n \\red'
               : '',
           idKey
         }
@@ -247,7 +245,7 @@ class Edit extends React.Component {
     if (direction === 'up') {
       if (index !== 0) {
         let localsection = [...this.state.section];
-        console.log('moved');
+
         let selectedElement = localsection[index];
         localsection[index] = localsection[index - 1];
         localsection[index - 1] = selectedElement;
@@ -258,7 +256,7 @@ class Edit extends React.Component {
     } else {
       if (index !== this.state.section.length - 1) {
         let localsection = [...this.state.section];
-        console.log('moved');
+
         let selectedElement = localsection[index];
         localsection[index] = localsection[index + 1];
         localsection[index + 1] = selectedElement;
@@ -300,7 +298,7 @@ class Edit extends React.Component {
           />
         );
       }
-      console.log(input);
+
     });
     return (
       <React.Fragment>
@@ -349,7 +347,7 @@ class Edit extends React.Component {
             />
 
             {this.state.section.map((content, index) => {
-              console.log(content.idKey);
+
               let articleKey = Object.keys(content)[0];
               if (articleKey === 'idKey') {
                 articleKey = Object.keys(content)[1];
@@ -424,7 +422,6 @@ class Edit extends React.Component {
               style={{ margin: '1em 2px 5px' }}
               onClick={this.handleSubmit}
             >
-
               更新
             </Button>
             <Button
@@ -452,6 +449,7 @@ class Edit extends React.Component {
               {this.state.deleteError && <h3>this.state.deleteError</h3>}
             </Modal>
           </div>
+
           <div className="right">
             <MarkdownArticle
               style={{ marginTop: '1em' }}

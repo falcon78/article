@@ -6,7 +6,6 @@ import ImageCaption from '../../components/molecules/imageCaption';
 import ArticleTitle from '../../components/atoms/SP_ArticleTitle';
 import ColorText from '../../components/atoms/colorText';
 // import StepsDiagram from "./../../components/molecules/SP_StepsDiagram";
-const uuidv4 = require('uuid/v4');
 
 const picRegex = /\[(.*)]\((.*)\)/;
 
@@ -15,65 +14,61 @@ const MarkdownArticle = props => {
     let articleElement = [];
     if (section.text) {
       articleElement = articleElement.concat(
-        <div className="text" key={uuidv4()}>
+        <div className="text" key={section.idKey}>
           <MarkdownConverterToHtml markdown={section.text} />
         </div>
       );
     }
     if (section.passage) {
       articleElement = articleElement.concat(
-        <Flex key={uuidv4()}>
+        <Flex key={section.idKey}>
           <TempPassage className="passage">{section.passage}</TempPassage>
         </Flex>
       );
     }
     if (section.subhead) {
       articleElement = articleElement.concat(
-        <Subhead key={uuidv4()} className="subhead" subhead={section.subhead} />
+        <Subhead key={section.idKey} className="subhead" subhead={section.subhead} />
       );
     }
     if (section.title) {
       articleElement = articleElement.concat(
-        <ArticleTitle title={section.title} key={uuidv4()} />
+        <ArticleTitle title={section.title} key={section.idKey} />
       );
     }
     if (section.image && section.image.match(picRegex)) {
       const image = section.image.match(picRegex);
-      console.log(image);
       articleElement = articleElement.concat(
         <MarginBottom>
-          <ImageCaption image={image[2]} caption={image[1]} key={uuidv4()} />
+          <ImageCaption image={image[2]} caption={image[1]} key={section.idKey} />
         </MarginBottom>
       );
     }
     if (section.firstPic && section.firstPic.match(picRegex)) {
       const image = section.firstPic.match(picRegex);
-      console.log(image);
       articleElement = articleElement.concat(
         <MarginBottom>
-          <ImageCaption image={image[2]} caption={image[1]} key={uuidv4()} />
+          <ImageCaption image={image[2]} caption={image[1]} key={section.idKey} />
         </MarginBottom>
       );
     }
     if (section.colortext) {
       const text = section.colortext.split('\\');
-      const renderText =
-        text.length > 1 ? (
-          <ColorText
-            text={<MarkdownConverterToHtml markdown={text[0]} />}
-            color={text[1].replace(/\s/gi, '')}
-          />
-        ) : (
-          <ColorText text={text[0]} color="red" />
-        );
-      return renderText;
+      return text.length > 1 ? (
+        <ColorText
+          text={<MarkdownConverterToHtml markdown={text[0]} />}
+          color={text[1].replace(/\s/gi, '')}
+        />
+      ) : (
+        <ColorText text={text[0]} color="red" />
+      );
     }
     return articleElement;
   });
   return (
     <Style>
       {renderView.map(element => (
-        <div className="margin">{element}</div>
+        <div key={element.idKey} className="margin">{element}</div>
       ))}
     </Style>
   );
@@ -81,7 +76,7 @@ const MarkdownArticle = props => {
 
 /* <div>
         props.body.map(v => (
-          <div key={uuidv4()}>{ {section.step && <StepsDiagram />}}</div>
+          <div key={section.idKey}>{ {section.step && <StepsDiagram />}}</div>
         ))}
 </div> */
 export default MarkdownArticle;
@@ -93,11 +88,11 @@ const Style = styled.div`
     margin: 1em;
   }
   border-style: solid;
-  border-color: antiquewhite;
+  border-color: whitesmoke;
   border-radius: 10px;
-  -moz-box-shadow: 0 0 3px #ccc;
--webkit-box-shadow: 0 0 3px #ccc;
-box-shadow: 0 0 10px #ccc;
+  -moz-box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  -webkit-box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 `;
 
 const MarginBottom = styled.div`

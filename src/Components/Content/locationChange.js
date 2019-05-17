@@ -37,7 +37,7 @@ function LocationChange({ firebase }) {
     setInput(inputValue);
     if (inputValue.match(matchRegex)) {
       const inputArray = inputValue.split('/').filter(value => !!value);
-      console.log(inputArray);
+      
       if (inputArray.length === 2) {
         setLocation({
           collection: inputArray[0],

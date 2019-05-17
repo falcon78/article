@@ -13,6 +13,7 @@ const withAuthorization = condition => Component => {
         authStatus: null
       };
     }
+
     componentDidMount() {
       this.listener = this.props.firebase.auth.onAuthStateChanged(authUser => {
         if (!condition(authUser)) {

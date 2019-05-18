@@ -6,12 +6,14 @@ import ImageCaption from '../../components/molecules/imageCaption';
 import ArticleTitle from '../../components/atoms/SP_ArticleTitle';
 import ColorText from '../../components/atoms/colorText';
 // import StepsDiagram from "./../../components/molecules/SP_StepsDiagram";
+import ArticleImage from '../../components/atoms/article-image';
 
 const picRegex = /\[(.*)]\((.*)\)/;
 
 const MarkdownArticle = props => {
   const renderView = props.section.map(section => {
     let articleElement = [];
+
     if (section.text) {
       articleElement = articleElement.concat(
         <div className="text" key={section.idKey}>
@@ -28,7 +30,11 @@ const MarkdownArticle = props => {
     }
     if (section.subhead) {
       articleElement = articleElement.concat(
-        <Subhead key={section.idKey} className="subhead" subhead={section.subhead} />
+        <Subhead
+          key={section.idKey}
+          className="subhead"
+          subhead={section.subhead}
+        />
       );
     }
     if (section.title) {
@@ -40,7 +46,11 @@ const MarkdownArticle = props => {
       const image = section.image.match(picRegex);
       articleElement = articleElement.concat(
         <MarginBottom>
-          <ImageCaption image={image[2]} caption={image[1]} key={section.idKey} />
+          <ImageCaption
+            image={image[2]}
+            caption={image[1]}
+            key={section.idKey}
+          />
         </MarginBottom>
       );
     }
@@ -48,7 +58,11 @@ const MarkdownArticle = props => {
       const image = section.firstPic.match(picRegex);
       articleElement = articleElement.concat(
         <MarginBottom>
-          <ImageCaption image={image[2]} caption={image[1]} key={section.idKey} />
+          <ImageCaption
+            image={image[2]}
+            caption={image[1]}
+            key={section.idKey}
+          />
         </MarginBottom>
       );
     }
@@ -67,8 +81,21 @@ const MarkdownArticle = props => {
   });
   return (
     <Style>
+      <div>
+        <ArticleTitle title={props.title} />
+        <MarginBottom>
+          <ImageCaption
+            image={props.image}
+            caption=''
+          />
+        </MarginBottom>
+
+        <MarkdownConverterToHtml markdown={props.lead} />
+        </div>
       {renderView.map(element => (
-        <div key={element.idKey} className="margin">{element}</div>
+        <div key={element.idKey} className="margin">
+          {element}
+        </div>
       ))}
     </Style>
   );

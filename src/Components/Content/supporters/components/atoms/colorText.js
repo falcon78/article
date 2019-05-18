@@ -3,7 +3,7 @@ import styled from 'styled-components';
 
 const ColorText = ({ color, text }) => {
   const Color = styled.div`
-    div {
+    * {
       color: ${color};
     }
   `;

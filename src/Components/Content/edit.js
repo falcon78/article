@@ -54,7 +54,6 @@ class Edit extends React.Component {
     await this.docref
       .get()
       .then(data => {
-
         let fb_col = data.data().location.collection;
         let fb_doc = data.data().location.document;
         let fb_subcol = data.data().location.subcollection;
@@ -77,7 +76,6 @@ class Edit extends React.Component {
         this.setState({
           error: 'エラーが発生しました。'
         });
-
       });
   };
 
@@ -139,7 +137,7 @@ class Edit extends React.Component {
       .update({
         title: this.state.title,
         image: this.state.image,
-        lead: this.state.image,
+        lead: this.state.lead,
         section: this.state.section,
         lastEdited: new Date().toISOString()
       })
@@ -298,7 +296,6 @@ class Edit extends React.Component {
           />
         );
       }
-
     });
     return (
       <React.Fragment>
@@ -311,22 +308,6 @@ class Edit extends React.Component {
               name="title"
               onChange={this.handleChange}
               value={this.state.title}
-            />
-            <div
-              style={{
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'space-between'
-              }}
-            >
-              <Button type="primary">リード文書 (カード)</Button>
-            </div>
-            <TextArea
-              style={{ margin: '0.5em 0', marginTop: '2px' }}
-              autosize={{ minRows: 2, maxRows: 100 }}
-              name="lead"
-              onChange={this.handleChange}
-              value={this.state.lead}
             />
 
             <div
@@ -346,8 +327,24 @@ class Edit extends React.Component {
               value={this.state.image}
             />
 
-            {this.state.section.map((content, index) => {
+            <div
+              style={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'space-between'
+              }}
+            >
+              <Button type="primary">リード文書 (カード)</Button>
+            </div>
+            <TextArea
+              style={{ margin: '0.5em 0', marginTop: '2px' }}
+              autosize={{ minRows: 2, maxRows: 100 }}
+              name="lead"
+              onChange={this.handleChange}
+              value={this.state.lead}
+            />
 
+            {this.state.section.map((content, index) => {
               let articleKey = Object.keys(content)[0];
               if (articleKey === 'idKey') {
                 articleKey = Object.keys(content)[1];
@@ -454,6 +451,9 @@ class Edit extends React.Component {
             <MarkdownArticle
               style={{ marginTop: '1em' }}
               section={this.state.section}
+              image = {this.state.image}
+              title = {this.state.title}
+              lead = {this.state.lead}
             />
           </div>
         </Style>

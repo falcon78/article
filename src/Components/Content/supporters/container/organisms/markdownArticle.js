@@ -114,7 +114,7 @@ const Style = styled.div`
   .margin {
     margin: 1em;
   }
-  border-style: solid;
+  padding: 10px;
   border-color: whitesmoke;
   border-radius: 10px;
   -moz-box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);

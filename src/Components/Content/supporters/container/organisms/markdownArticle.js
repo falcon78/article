@@ -6,6 +6,7 @@ import ImageCaption from '../../components/molecules/imageCaption';
 import ArticleTitle from '../../components/atoms/SP_ArticleTitle';
 import ColorText from '../../components/atoms/colorText';
 // import StepsDiagram from "./../../components/molecules/SP_StepsDiagram";
+import Header from '../../components/atoms/SP_BlockTextWithLineAtom';
 
 const MarkdownArticle = props => {
   const renderView = props.section.map(section => {
@@ -16,6 +17,11 @@ const MarkdownArticle = props => {
         <div className="text" key={section.idKey}>
           <MarkdownConverterToHtml markdown={section.text} />
         </div>
+      );
+    }
+    if (section.header) {
+      articleElement = articleElement.concat(
+        <Header color="#009688" text={section.header} />
       );
     }
     if (section.passage) {
@@ -120,7 +126,7 @@ const TempPassage = styled.div`
   &::before {
     content: '';
     position: absolute;
-    background: rgba(0,176,162,0.6);
+    background: rgba(0, 176, 162, 0.6);
     width: 30px;
     height: 30px;
     border-radius: 50%;

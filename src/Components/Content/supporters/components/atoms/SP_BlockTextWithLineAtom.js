@@ -22,7 +22,7 @@ const Heading = styled.span`
   word-wrap: break-word;
   font-size: 18px;
   color: #009688;;
-  z-index: 2;
+  z-index: -1;
   padding: 0 1em;
 `;
 
@@ -38,6 +38,6 @@ const Border = styled.h2`
     position: absolute;
     top: 60%;
     background-color: #009688;
-    z-index: 1;
+    z-index: -2;
   }
 `;

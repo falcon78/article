@@ -87,6 +87,7 @@ const NavigationNonAuth = () => {
 export default withRouter(Navigation);
 
 const Style = styled.div`
+  z-index: 9999;
   .container {
     display: flex;
   }

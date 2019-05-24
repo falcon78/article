@@ -26,12 +26,12 @@ const dataSchema = (
   lastEdited,
   // ドキュメントのパス
   location,
-  /*{
+  /* {
     collection: '',
     document: '',
     subcollection: '',
     subdocument: ''
-  },*/
+  }, */
   // 新しい構成の記事データであることを管理ページで確認するためのプロパティー
   // このプロパティーがfalseまたは存在しない場合は記事を非公開にしたり、編集することができません
   NEWCONTENTTYPE,
@@ -44,8 +44,8 @@ const dataSchema = (
   isOpenFlg,
   // SEO最適化用にデータ (?) 記事を作成するとき一回しか入力できません。編集したい場合はFirebaseで編集してください。
   metadata
-  /*{
+  /* {
     description: '',
     title: ''
-  }*/
+  } */
 });

@@ -7,6 +7,9 @@ import { withFirebase } from '../Firebase';
 import { withRouter } from 'react-router-dom';
 import { Input, Button } from 'antd/lib/index';
 import Loading from './modules/loading';
+import { Select } from 'antd';
+
+const Option = Select.Option;
 
 const { TextArea } = Input;
 const uuidv4 = require('uuid/v4');
@@ -28,7 +31,8 @@ class NewArticle extends React.Component {
       metadata: {
         title: '',
         description: ''
-      }
+      },
+      pathlist: {}
     };
     this.state = this.INITIAL_STATE;
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -50,6 +54,8 @@ class NewArticle extends React.Component {
       this.state.body !== '' &&
       this.state.collection !== '' &&
       this.state.document !== '' &&
+      this.state.subcollection !== '' &&
+      this.state.subdocument !== '' &&
       this.state.metadata.description !== '' &&
       this.state.metadata.title !== ''
     ) {
@@ -104,7 +110,6 @@ class NewArticle extends React.Component {
           this.setState({
             error: 'エラーが発生しました。'
           });
-
         });
     } else {
       this.setState({
@@ -122,16 +127,41 @@ class NewArticle extends React.Component {
       }
     });
   };
+
+  handleSelect = value => {
+    const path = value.split('/');
+    this.setState({
+      collection: path[0],
+      document: path[1],
+      subcollection: path[2]
+    });
+  };
+
+  docref = this.props.firebase.db.collection('ArticlePathList').doc('pathlist');
+
+  componentDidMount() {
+    this.docref.get().then(data => {
+      this.setState({
+        pathlist: data.data().path
+      });
+      console.log(this.state.pathlist);
+    });
+  }
+
   render() {
+    const keys = Object.keys(this.state.pathlist);
+    const pathlist = this.state.pathlist;
     return (
       <Style>
-        <div
-          style={{
-            display: 'flex',
-            width: '100%',
-            justifyContent: 'space-around'
-          }}
-        >
+        <div className="select">
+          <Select style={{ width: '300px' }} onChange={this.handleSelect}>
+            {keys.map(key => (
+              <Option value={pathlist[key]}>{key}</Option>
+            ))}
+            {/*<Option value="jack">Jack</Option>*/}
+          </Select>
+        </div>
+        <div style={{}} className="pathdiv">
           <Input
             required
             style={{ margin: '0.5em' }}
@@ -275,5 +305,20 @@ const Style = styled.div`
 
   button {
     width: 100%;
+  }
+  .pathdiv {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: space-around;
+    input {
+      width: 22vw;
+    }
+  }
+  .select {
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2em;
   }
 `;

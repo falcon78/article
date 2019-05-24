@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { withRouter } from 'react-router-dom';
 import { Input, Button, Modal } from 'antd';
 import styled from 'styled-components';
@@ -6,7 +6,9 @@ import { compose } from 'recompose';
 import { withAuthorization } from '../Session';
 import { withFirebase } from '../Firebase';
 import Loading from './modules/loading';
+import { Select } from 'antd';
 
+const Option = Select.Option;
 const uuidv4 = require('uuid/v4');
 
 function LocationChange({ firebase }) {
@@ -17,6 +19,7 @@ function LocationChange({ firebase }) {
     subdocument: ''
   });
 
+  const [path, setPath] = useState({});
   const [textInput, setInput] = useState('');
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -33,11 +36,11 @@ function LocationChange({ firebase }) {
   };
 
   const handleChange = event => {
-    let inputValue = event.target.value;
+    const inputValue = event.target.value;
     setInput(inputValue);
     if (inputValue.match(matchRegex)) {
       const inputArray = inputValue.split('/').filter(value => !!value);
-      
+
       if (inputArray.length === 2) {
         setLocation({
           collection: inputArray[0],
@@ -126,6 +129,19 @@ function LocationChange({ firebase }) {
       setLoading(false);
     }
   };
+  const pathDocref = firebase.db.collection('ArticlePathList').doc('pathlist');
+
+  useEffect(() => {
+    pathDocref
+      .get()
+      .then(data => {
+        setPath(data.data().path);
+      })
+      .catch(pullerror => {
+        throw pullerror;
+      });
+  }, []);
+
   const keys = Object.keys(location);
   let input = [];
   keys.forEach(key => {
@@ -139,8 +155,25 @@ function LocationChange({ firebase }) {
     );
   });
 
+  const handleSelect = value => {
+    const articlepath = value.split('/');
+    setLocation({
+      ...location,
+      collection: articlepath[0],
+      document: articlepath[1],
+      subcollection: articlepath[2]
+    });
+  };
+
   return (
     <Style>
+      <div className="select">
+        <Select style={{ width: '300px' }} onChange={handleSelect}>
+          {Object.keys(path).map(key => (
+            <Option value={path[key]}>{key}</Option>
+          ))}
+        </Select>
+      </div>
       <Input
         value={textInput}
         placeholder="パスを入力してください。"
@@ -199,5 +232,8 @@ const Style = styled.div`
   .spacer {
     width: 100vw;
     height: 3em;
+  }
+  .select {
+    margin-bottom: 2em;
   }
 `;

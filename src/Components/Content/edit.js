@@ -6,10 +6,11 @@ import { withFirebase } from '../Firebase/index';
 import { withRouter } from 'react-router-dom';
 import { compose } from 'recompose';
 import styled from 'styled-components';
-import ArticleView from './modules/viewArticle';
 import Loading from './modules/loading';
 import * as ROUTES from '../../constants/routes';
 import MarkdownArticle from './supporters/container/organisms/markdownArticle';
+import DisplayLocation from './modules/DisplayLocation';
+import DeleteAndOrderButtons from './modules/DeleteAndOrderButtons';
 
 const { TextArea } = Input;
 const uuidv4 = require('uuid/v4');
@@ -37,12 +38,13 @@ class Edit extends React.Component {
         'image',
         'passage',
         'colortext',
-        'subhead'
+        'subhead',
+        'header'
       ],
       initialLoad: true,
       deleteModal: false,
       confirmLoading: false,
-      deleteError: ''
+      deleteError: '',
     };
   }
 
@@ -101,22 +103,31 @@ class Edit extends React.Component {
 
   handleAdd = value => {
     const idKey = uuidv4();
-    this.setState({
-      section: [
-        ...this.state.section,
-        {
-          [value]:
-            value === 'image' || value === 'firstPic'
-              ? '[テキスト](URL)'
-              : value === 'colortext'
-              ? 'テキスト  \n\n\n \\red'
-              : '',
-          idKey
-        }
-      ],
-      add: ''
-    });
-    this.handleSubmit();
+    if (value === 'image' || value === 'colortext') {
+      this.setState({
+        section: [
+          ...this.state.section,
+          {
+            [value]: '',
+            [value === 'image' ? 'caption' : 'color']: '',
+            idKey
+          }
+        ],
+        add: ''
+      });
+    } else {
+      this.setState({
+        section: [
+          ...this.state.section,
+          {
+            [value]: '',
+            idKey
+          }
+        ],
+        add: ''
+      });
+      this.handleSubmit();
+    }
   };
 
   handleNewAdd = () => {
@@ -146,64 +157,71 @@ class Edit extends React.Component {
           loading: false
         });
       })
-      .catch();
+      .catch(() => {
+        this.setState({
+          error: '記事を投稿できませんでした。'
+        });
+      });
   };
 
   handlePublish = async () => {
-    let docref_publish = this.state.location.subdocument
-      ? this.props.firebase.db
-          .collection(this.state.location.collection)
-          .doc(this.state.location.document)
-          .collection(this.state.location.subcollection)
-          .doc(this.state.location.subdocument)
-      : this.props.firebase.db
-          .collection(this.state.location.collection)
-          .doc(this.state.location.document);
-    this.setState({
-      loading: true
-    });
-
-    this.docref
-      .update({
-        title: this.state.title,
-        image: this.state.image,
-        lead: this.state.image,
-        section: this.state.section,
-        lastEdited: new Date().toISOString()
-      })
-      .then(() => {
-        this.docref.get().then(data => {
-          docref_publish
-            .set(data.data())
-            .then(() => {
-              this.docref
-                .delete()
-                .then(() => {
-                  this.setState({
-                    loading: false
-                  });
-                  this.props.history.push(ROUTES.LANDING);
-                })
-                .catch(error => {
-                  this.setState({
-                    error: 'エラーが発生しました。'
-                  });
-                  throw error;
-                });
-            })
-            .catch(error => {
-              this.setState({
-                error: 'エラーが発生しました。'
-              });
-              throw error;
-            });
-        });
-      })
-      .catch(() => {
-        this.setState({
-          error: ' エラーが発生しました。'
-        });
+    const confirm = window.confirm('本当に公開しますか？');
+    if (confirm) {
+      let docref_publish = this.state.location.subdocument
+        ? this.props.firebase.db
+            .collection(this.state.location.collection)
+            .doc(this.state.location.document)
+            .collection(this.state.location.subcollection)
+            .doc(this.state.location.subdocument)
+        : this.props.firebase.db
+            .collection(this.state.location.collection)
+            .doc(this.state.location.document);
+      this.setState({
+        loading: true
       });
+
+      this.docref
+        .update({
+          title: this.state.title,
+          image: this.state.image,
+          lead: this.state.lead,
+          section: this.state.section,
+          lastEdited: new Date().toISOString()
+        })
+        .then(() => {
+          this.docref.get().then(data => {
+            docref_publish
+              .set(data.data())
+              .then(() => {
+                this.docref
+                  .delete()
+                  .then(() => {
+                    this.setState({
+                      loading: false
+                    });
+                    this.props.history.push(ROUTES.LANDING);
+                  })
+                  .catch(error => {
+                    this.setState({
+                      error: 'エラーが発生しました。'
+                    });
+                    throw error;
+                  });
+              })
+              .catch(error => {
+                this.setState({
+                  error: 'エラーが発生しました。'
+                });
+                throw error;
+              });
+          });
+        })
+        .catch(() => {
+          this.setState({
+            error: ' エラーが発生しました。'
+          });
+        });
+    }
   };
 
   handleShowModal = () => {
@@ -266,15 +284,19 @@ class Edit extends React.Component {
   };
 
   handleDeleteItem = index => {
-    let localsection = [...this.state.section];
-    let newArray = localsection.filter((content, i) => index !== i);
-    this.setState({
-      section: newArray
-    });
+    if (window.confirm('項目を削除しますか?')) {
+      let localsection = [...this.state.section];
+      let newArray = localsection.filter((content, i) => index !== i);
+      this.setState({
+        section: newArray
+      });
+    }
   };
+
 
   componentDidMount() {
     this.fetchFirebase();
+
   }
 
   render() {
@@ -283,181 +305,157 @@ class Edit extends React.Component {
     }
     let regex = new RegExp(this.state.add);
     let match = this.state.title_source.filter(word => word.match(regex));
-    let input = [];
-    let keys = Object.keys(this.state.location);
-    keys.forEach(key => {
-      if (this.state.location[key]) {
-        input = input.concat(
-          <Input
-            style={{ width: '150px', margin: '2px' }}
-            value={this.state.location[key]}
-            disabled
-            key={uuidv4()}
-          />
-        );
-      }
-    });
+
     return (
-      <React.Fragment>
-        <Style>
-          <div className="left">
-            <div style={{ display: 'flex', justifyContent: 'space-between' }} />
-            {input}
-            <Input
-              style={{ margin: '1em 0' }}
-              name="title"
-              onChange={this.handleChange}
-              value={this.state.title}
-            />
+      <Style>
+        <div className="left">
+          <div style={{ display: 'flex', justifyContent: 'space-between' }} />
+          <DisplayLocation location={this.state.location} />
 
-            <div
-              style={{
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'space-between'
-              }}
-            >
-              <Button type="primary">メイン画像</Button>
-            </div>
-            <TextArea
-              style={{ margin: '0.5em 0', marginTop: '2px' }}
-              autosize={{ minRows: 2, maxRows: 100 }}
-              name="image"
-              onChange={this.handleChange}
-              value={this.state.image}
-            />
+          <Input
+            spellcheck="false"
+            style={{ margin: '1em 0' }}
+            name="title"
+            onChange={this.handleChange}
+            value={this.state.title}
+          />
 
-            <div
-              style={{
-                width: '100%',
-                display: 'flex',
-                justifyContent: 'space-between'
-              }}
-            >
-              <Button type="primary">リード文書 (カード)</Button>
-            </div>
-            <TextArea
-              style={{ margin: '0.5em 0', marginTop: '2px' }}
-              autosize={{ minRows: 2, maxRows: 100 }}
-              name="lead"
-              onChange={this.handleChange}
-              value={this.state.lead}
-            />
+          <div
+            style={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'space-between'
+            }}
+          >
+            <Button type="primary">メイン画像</Button>
+          </div>
+          <TextArea
+            spellcheck="false"
+            style={{ margin: '0.5em 0', marginTop: '2px' }}
+            autosize={{ minRows: 2, maxRows: 100 }}
+            name="image"
+            onChange={this.handleChange}
+            value={this.state.image}
+          />
 
-            {this.state.section.map((content, index) => {
-              let articleKey = Object.keys(content)[0];
-              if (articleKey === 'idKey') {
-                articleKey = Object.keys(content)[1];
-              }
-              let textArea = (
-                <div key={content.idKey}>
-                  <div
-                    style={{
-                      marginTop: '10px',
-                      width: '100%',
-                      display: 'flex',
-                      justifyContent: 'space-between'
-                    }}
-                  >
-                    <Button type="primary">{articleKey}</Button>
-                    <div
-                      style={{
-                        display: 'flex',
-                        width: '120px',
-                        justifyContent: 'space-around'
-                      }}
-                    >
+          <div
+            style={{
+              width: '100%',
+              display: 'flex',
+              justifyContent: 'space-between'
+            }}
+          >
+            <Button type="primary">リード文書 (カード)</Button>
+          </div>
+          <TextArea
+            spellcheck="false"
+            style={{ margin: '0.5em 0', marginTop: '2px' }}
+            autosize={{ minRows: 1, maxRows: 100 }}
+            name="lead"
+            onChange={this.handleChange}
+            value={this.state.lead}
+          />
+
+          {this.state.section.map((content, index) => {
+            let articleKey = Object.keys(content).filter(
+              key => key !== 'idKey'
+            );
+            if (articleKey.length === 2 && articleKey.includes('image')) {
+              articleKey[0] = 'image';
+              articleKey[1] = 'caption';
+            } else if (
+              articleKey.length === 2 &&
+              articleKey.includes('colortext')
+            ) {
+              articleKey[0] = 'colortext';
+              articleKey[1] = 'color';
+            }
+            return (
+              <div key={content.idKey}>
+                <div className="spacebetween">
+                  <div>
+                    {articleKey.map((key, index) => (
                       <Button
-                        type={'primary'}
-                        shape={'circle'}
-                        icon={'arrow-up'}
-                        onClick={() => this.handleOrder('up', index)}
-                      />
-                      <Button
-                        type={'primary'}
-                        shape={'circle'}
-                        icon={'arrow-down'}
-                        onClick={() => this.handleOrder('down', index)}
-                      />
-                      <Button
-                        type={'danger'}
-                        shape={'circle'}
-                        icon={'delete'}
-                        onClick={() => {
-                          this.handleDeleteItem(index);
-                        }}
-                      />
-                    </div>
+                        key={index}
+                        type={index === 0 ? 'primary' : 'danger'}
+                      >
+                        {key}
+                      </Button>
+                    ))}
                   </div>
-
-                  <TextArea
-                    style={{ margin: '0.5em 0', marginTop: '2px' }}
-                    autosize={{ minRows: 2, maxRows: 100 }}
-                    name={index}
-                    onChange={e => this.handleChangeSection(articleKey, e)}
-                    value={this.state.section[index][articleKey]}
+                  <DeleteAndOrderButtons
+                    handleOrder={this.handleOrder}
+                    handleRemove={this.handleDeleteItem}
+                    index={index}
                   />
                 </div>
-              );
-              return textArea;
-            })}
-            <AutoComplete
-              dataSource={match}
-              style={{ width: 200, marginTop: '1em' }}
-              onSelect={this.handleAdd}
-              onSearch={this.handleSearch}
-              value={this.state.add}
-              placeholder="入力/選択"
-            />
-            <Button style={{ marginLeft: '1em' }} onClick={this.handleNewAdd}>
-              追加
-            </Button>
-            <br />
-            {this.state.loading && <Loading inline />}
-            {this.state.error && <p>{this.state.error}</p>}
-            <Button
-              style={{ margin: '1em 2px 5px' }}
-              onClick={this.handleSubmit}
-            >
-              更新
-            </Button>
-            <Button
-              style={{ margin: '1em 2px 5px' }}
-              onClick={this.handlePublish}
-            >
-              公開
-            </Button>
-            <Button
-              style={{ margin: '1em 2px 2em' }}
-              onClick={this.handleShowModal}
-              type="danger"
-            >
-              削除
-            </Button>
-            <Modal
-              title="削除"
-              visible={this.state.deleteModal}
-              onOk={this.handleDelete}
-              confirmLoading={this.state.confirmLoading}
-              onCancel={this.handleShowModal}
-              centered
-            >
-              <p>{'本当に削除しますか？'}</p>
-              {this.state.deleteError && <h3>this.state.deleteError</h3>}
-            </Modal>
-          </div>
+                {articleKey.map((key, keyIndex) => (
+                  <TextArea
+                    spellCheck={false}
+                    key={keyIndex}
+                    style={{ margin: '0.5em 0', marginTop: '2px' }}
+                    autosize={{ minRows: 1, maxRows: 100 }}
+                    name={index}
+                    onChange={e => this.handleChangeSection(key, e)}
+                    value={this.state.section[index][key]}
+                  />
+                ))}
+              </div>
+            );
+          })}
+          <AutoComplete
+            dataSource={match}
+            style={{ width: 200, marginTop: '1em' }}
+            onSelect={this.handleAdd}
+            onSearch={this.handleSearch}
+            value={this.state.add}
+            placeholder="入力/選択"
+          />
+          <Button style={{ marginLeft: '1em' }} onClick={this.handleNewAdd}>
+            追加
+          </Button>
+          <br />
+          {this.state.loading && <Loading inline />}
+          {this.state.error && <p>{this.state.error}</p>}
+          <Button style={{ margin: '1em 2px 5px' }} onClick={this.handleSubmit}>
+            更新
+          </Button>
+          <Button
+            style={{ margin: '1em 2px 5px' }}
+            onClick={this.handlePublish}
+          >
+            公開
+          </Button>
+          <Button
+            style={{ margin: '1em 2px 2em' }}
+            onClick={this.handleShowModal}
+            type="danger"
+          >
+            削除
+          </Button>
+          <Modal
+            title="削除"
+            visible={this.state.deleteModal}
+            onOk={this.handleDelete}
+            confirmLoading={this.state.confirmLoading}
+            onCancel={this.handleShowModal}
+            centered
+          >
+            <p>{'本当に削除しますか？'}</p>
+            {this.state.deleteError && <h3>this.state.deleteError</h3>}
+          </Modal>
+        </div>
 
-          <div className="right">
-            <MarkdownArticle
-              style={{ marginTop: '1em' }}
-              section={this.state.section}
-              image = {this.state.image}
-              title = {this.state.title}
-              lead = {this.state.lead}
-            />
-          </div>
-        </Style>
-      </React.Fragment>
+        <div className="right">
+          <MarkdownArticle
+            style={{ marginTop: '1em' }}
+            section={this.state.section}
+            image={this.state.image}
+            title={this.state.title}
+            lead={this.state.lead}
+          />
+        </div>
+      </Style>
     );
   }
 }
@@ -483,6 +481,12 @@ const Style = styled.div`
     height: 90vh;
   }
   .container {
+    display: flex;
+    justify-content: space-between;
+  }
+  .spacebetween {
+    margin-top: 10px;
+    width: 100%;
     display: flex;
     justify-content: space-between;
   }

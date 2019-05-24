@@ -6,9 +6,6 @@ import ImageCaption from '../../components/molecules/imageCaption';
 import ArticleTitle from '../../components/atoms/SP_ArticleTitle';
 import ColorText from '../../components/atoms/colorText';
 // import StepsDiagram from "./../../components/molecules/SP_StepsDiagram";
-import ArticleImage from '../../components/atoms/article-image';
-
-const picRegex = /\[(.*)]\((.*)\)/;
 
 const MarkdownArticle = props => {
   const renderView = props.section.map(section => {
@@ -42,39 +39,24 @@ const MarkdownArticle = props => {
         <ArticleTitle title={section.title} key={section.idKey} />
       );
     }
-    if (section.image && section.image.match(picRegex)) {
-      const image = section.image.match(picRegex);
+    if (section.image && section.caption) {
       articleElement = articleElement.concat(
         <MarginBottom>
           <ImageCaption
-            image={image[2]}
-            caption={image[1]}
+            image={section.image}
+            caption={section.caption}
             key={section.idKey}
           />
         </MarginBottom>
       );
     }
-    if (section.firstPic && section.firstPic.match(picRegex)) {
-      const image = section.firstPic.match(picRegex);
-      articleElement = articleElement.concat(
-        <MarginBottom>
-          <ImageCaption
-            image={image[2]}
-            caption={image[1]}
-            key={section.idKey}
-          />
-        </MarginBottom>
-      );
-    }
+
     if (section.colortext) {
-      const text = section.colortext.split('\\');
-      return text.length > 1 ? (
+      articleElement = articleElement.concat(
         <ColorText
-          text={<MarkdownConverterToHtml markdown={text[0]} />}
-          color={text[1].replace(/\s/gi, '')}
+          text={<MarkdownConverterToHtml markdown={section.colortext} />}
+          color={section.color}
         />
-      ) : (
-        <ColorText text={text[0]} color="red" />
       );
     }
     return articleElement;
@@ -84,14 +66,11 @@ const MarkdownArticle = props => {
       <div>
         <ArticleTitle title={props.title} />
         <MarginBottom>
-          <ImageCaption
-            image={props.image}
-            caption=''
-          />
+          <ImageCaption image={props.image} caption="" />
         </MarginBottom>
 
         <MarkdownConverterToHtml markdown={props.lead} />
-        </div>
+      </div>
       {renderView.map(element => (
         <div key={element.idKey} className="margin">
           {element}
@@ -106,6 +85,7 @@ const MarkdownArticle = props => {
           <div key={section.idKey}>{ {section.step && <StepsDiagram />}}</div>
         ))}
 </div> */
+
 export default MarkdownArticle;
 
 const Style = styled.div`
@@ -136,12 +116,11 @@ const TempPassage = styled.div`
   position: relative;
   color: black;
   text-shadow: 0 0 2px white;
-  z-index: 1;
   width: max-content;
   &::before {
     content: '';
     position: absolute;
-    background: #9ac5e9;
+    background: rgba(0,176,162,0.6);
     width: 30px;
     height: 30px;
     border-radius: 50%;

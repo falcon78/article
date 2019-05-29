@@ -44,7 +44,7 @@ class Edit extends React.Component {
       initialLoad: true,
       deleteModal: false,
       confirmLoading: false,
-      deleteError: '',
+      deleteError: ''
     };
   }
 
@@ -258,28 +258,27 @@ class Edit extends React.Component {
   };
 
   handleOrder = (direction, index) => {
-    if (direction === 'up') {
-      if (index !== 0) {
-        let localsection = [...this.state.section];
+    if (direction === 'up' && index !== 0) {
+      let localsection = [...this.state.section];
 
-        let selectedElement = localsection[index];
-        localsection[index] = localsection[index - 1];
-        localsection[index - 1] = selectedElement;
-        this.setState({
-          section: localsection
-        });
-      }
-    } else {
-      if (index !== this.state.section.length - 1) {
-        let localsection = [...this.state.section];
+      let selectedElement = localsection[index];
+      localsection[index] = localsection[index - 1];
+      localsection[index - 1] = selectedElement;
+      this.setState({
+        section: localsection
+      });
+    } else if (
+      direction === 'down' &&
+      index !== this.state.section.length - 1
+    ) {
+      let localsection = [...this.state.section];
 
-        let selectedElement = localsection[index];
-        localsection[index] = localsection[index + 1];
-        localsection[index + 1] = selectedElement;
-        this.setState({
-          section: localsection
-        });
-      }
+      let selectedElement = localsection[index];
+      localsection[index] = localsection[index + 1];
+      localsection[index + 1] = selectedElement;
+      this.setState({
+        section: localsection
+      });
     }
   };
 
@@ -293,10 +292,8 @@ class Edit extends React.Component {
     }
   };
 
-
   componentDidMount() {
     this.fetchFirebase();
-
   }
 
   render() {

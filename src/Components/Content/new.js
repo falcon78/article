@@ -49,6 +49,15 @@ class NewArticle extends React.Component {
     let doc = this.state.document;
     let subcol = this.state.subcollection;
     let subdoc = this.state.subdocument;
+
+    //@TODO: Validation function
+    // let stateValidation = ['title','body'];
+    // stateValidation.reduce((prop) => {
+    //  this.state[prop] != ....
+    // })
+    //   if (!stateValidation){
+    //
+    //   }
     if (
       this.state.title !== '' &&
       this.state.body !== '' &&
@@ -73,6 +82,7 @@ class NewArticle extends React.Component {
           image: this.state.image,
           lead: this.state.lead,
           section: [],
+          //@TODO : Date Fix
           createdOn: new Date().toISOString(),
           lastEdited: '',
           location: {
@@ -108,7 +118,7 @@ class NewArticle extends React.Component {
             loading: false
           });
           this.setState({
-            error: 'エラーが発生しました。'
+            error: `エラーが発生しました。: ${error.message}`
           });
         });
     } else {

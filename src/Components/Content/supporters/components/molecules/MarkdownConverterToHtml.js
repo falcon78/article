@@ -4,8 +4,8 @@ import styled from 'styled-components';
 
 
 function MarkdownConverterToHtml({ markdown }) {
-  const output = markdown.replace(/\\n/g, '  \n'); // Markdownは”\n”の前スペースを二回開けないと改行されません。
-  const outputFinal = output.replace(/#{,1}/g, '# ');
+  const output = markdown.replace(/\\n/g, '<br/>');
+  const outputFinal = output.replace(/(#*)(.*)/g, `$1 $2`);
 
   return (
     <FontStyle>

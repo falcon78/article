@@ -9,6 +9,7 @@ import Loading from './modules/loading';
 import { Select } from 'antd';
 
 const Option = Select.Option;
+// eslint-disable-next-line no-unused-vars
 const uuidv4 = require('uuid/v4');
 
 function LocationChange({ firebase }) {

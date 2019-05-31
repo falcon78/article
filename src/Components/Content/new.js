@@ -8,10 +8,11 @@ import { withRouter } from 'react-router-dom';
 import { Input, Button } from 'antd/lib/index';
 import Loading from './modules/loading';
 import { Select } from 'antd';
+import DisplayLocation from './modules/DisplayLocation';
 
 const Option = Select.Option;
+const moment = require('moment');
 
-const { TextArea } = Input;
 const uuidv4 = require('uuid/v4');
 
 class NewArticle extends React.Component {
@@ -26,13 +27,19 @@ class NewArticle extends React.Component {
       document: '',
       subcollection: '',
       subdocument: '',
+      card: {
+        collection: '',
+        document: '',
+        subcollection: ''
+      },
       loading: false,
       error: '',
       metadata: {
         title: '',
         description: ''
       },
-      pathlist: {}
+      pathlist: {},
+      id: ''
     };
     this.state = this.INITIAL_STATE;
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -44,29 +51,23 @@ class NewArticle extends React.Component {
     });
   };
 
+  characterValidate = char =>
+    char ? !!char.replace(/\s/g, '').match(/.*/gi) : false;
+
   handleSubmit = async () => {
     let col = this.state.collection;
     let doc = this.state.document;
     let subcol = this.state.subcollection;
     let subdoc = this.state.subdocument;
 
-    //@TODO: Validation function
-    // let stateValidation = ['title','body'];
-    // stateValidation.reduce((prop) => {
-    //  this.state[prop] != ....
-    // })
-    //   if (!stateValidation){
-    //
-    //   }
     if (
-      this.state.title !== '' &&
-      this.state.body !== '' &&
-      this.state.collection !== '' &&
-      this.state.document !== '' &&
-      this.state.subcollection !== '' &&
-      this.state.subdocument !== '' &&
-      this.state.metadata.description !== '' &&
-      this.state.metadata.title !== ''
+      this.characterValidate(this.state.collection) &&
+      this.characterValidate(this.state.document) &&
+      this.characterValidate(this.state.subcollection) &&
+      this.characterValidate(this.state.subdocument) &&
+      this.characterValidate(this.state.metadata.description) &&
+      this.characterValidate(this.state.metadata.title) &&
+      this.characterValidate(this.state.id)
     ) {
       let docref = this.props.firebase.db
         .collection('Private')
@@ -75,15 +76,16 @@ class NewArticle extends React.Component {
         loading: true
       });
 
+      let today = new Date();
+      today.setHours(today.getHours() + 4);
+
       await docref
         .set({
-          body: [],
           title: this.state.title,
           image: this.state.image,
           lead: this.state.lead,
           section: [],
-          //@TODO : Date Fix
-          createdOn: new Date().toISOString(),
+          createdOn: moment(new Date()).format('YYYY-MM-DD HH:mm'),
           lastEdited: '',
           location: {
             collection: col ? col : '',
@@ -91,13 +93,17 @@ class NewArticle extends React.Component {
             subcollection: subcol ? subcol : '',
             subdocument: subdoc ? subdoc : ''
           },
+          cardLocation: {
+            collection: this.state.card.collection,
+            document: this.state.card.document,
+            subcollection: this.state.card.subcollection,
+            subdocument: this.state.subdocument
+          },
 
           NEWCONTENTTYPE: true,
-          id: new Date()
-            .toISOString()
-            .substring(0, 7)
-            .replace('-', ''),
-          to: uuidv4(),
+          id: parseInt(this.state.id, 10),
+          //id: parseInt(moment(new Date()).format('YYYYMMDDHHmm'), 10),
+          to: this.state.to,
           isOpenFlg: true,
           metadata: this.state.metadata
         })
@@ -139,28 +145,51 @@ class NewArticle extends React.Component {
   };
 
   handleSelect = value => {
-    const path = value.split('/');
+    const docPath = value.docPath.split('/');
+    const cardPath = value.cardPath.split('/');
     this.setState({
-      collection: path[0],
-      document: path[1],
-      subcollection: path[2]
+      collection: docPath[0],
+      document: docPath[1],
+      subcollection: docPath[2],
+      location: {
+        collection: docPath[0],
+        document: docPath[1],
+        subcollection: docPath[2]
+      },
+      to: value.to,
+      card: {
+        collection: cardPath[0],
+        document: cardPath[1],
+        subcollection: cardPath[2]
+      }
     });
   };
 
-  docref = this.props.firebase.db.collection('ArticlePathList').doc('pathlist');
+  getPathData = () => {
+    const docref = this.props.firebase.db
+      .collection('ArticlePathList')
+      .doc('pathlist');
+    docref
+      .get()
+      .then(data => {
+        if (data.exists) {
+          this.setState({
+            pathlist: data.data().path
+          });
+        }
+      })
+      .finally(() => {});
+  };
 
   componentDidMount() {
-    this.docref.get().then(data => {
-      this.setState({
-        pathlist: data.data().path
-      });
-      console.log(this.state.pathlist);
-    });
+    this.getPathData();
+    console.log(this.characterValidate(" "))
   }
 
   render() {
     const keys = Object.keys(this.state.pathlist);
     const pathlist = this.state.pathlist;
+
     return (
       <Style>
         <div className="select">
@@ -171,40 +200,58 @@ class NewArticle extends React.Component {
             {/*<Option value="jack">Jack</Option>*/}
           </Select>
         </div>
-        <div style={{}} className="pathdiv">
-          <Input
-            required
-            style={{ margin: '0.5em' }}
-            placeholder="collection"
-            value={this.state.collection}
-            name="collection"
-            onChange={this.handleChange}
-          />
-          <Input
-            required
-            style={{ margin: '0.5em' }}
-            placeholder="document"
-            value={this.state.document}
-            name="document"
-            onChange={this.handleChange}
-          />
-          <Input
-            required
-            style={{ margin: '0.5em' }}
-            placeholder="subcollection"
-            value={this.state.subcollection}
-            name="subcollection"
-            onChange={this.handleChange}
-          />
-          <Input
-            required
-            style={{ margin: '0.5em' }}
-            placeholder="subdocument"
-            value={this.state.subdocument}
-            name="subdocument"
-            onChange={this.handleChange}
-          />
+
+        <div className="pathdiv">
+          {this.state.location && (
+            <React.Fragment>
+              <span className="label">ドキュメントパス</span>
+              <DisplayLocation location={this.state.location} />
+            </React.Fragment>
+          )}
         </div>
+
+        <div className="pathdiv">
+          {this.state.card.document && (
+            <React.Fragment>
+              <span className="label">カードパス</span>
+              <DisplayLocation location={this.state.card} />
+            </React.Fragment>
+          )}
+        </div>
+
+        <label
+          style={{
+            marginTop: '0.5em',
+            marginLeft: '1em'
+          }}
+        >
+          サブドキュメント (Subdocument)
+        </label>
+
+        <Input
+          required
+          style={{ margin: '0.5em' }}
+          placeholder="subdocument"
+          value={this.state.subdocument}
+          name="subdocument"
+          onChange={this.handleChange}
+        />
+        <label
+          style={{
+            marginLeft: '1em',
+            marginTop: '0.5em'
+          }}
+        >
+          記事 ID
+        </label>
+        <Input
+          onChange={this.handleChange}
+          name="id"
+          value={this.state.id}
+          style={{ margin: '0.5em' }}
+          placeholder="半角数字 ID (ex. 20180512) "
+          required
+        />
         <label
           style={{
             marginTop: '0.5em',
@@ -320,15 +367,19 @@ const Style = styled.div`
     display: flex;
     flex-wrap: wrap;
     width: 100%;
-    justify-content: space-around;
+    justify-content: center;
     input {
       width: 22vw;
     }
   }
   .select {
-    width: 100vw;
+    width: 90vw;
     display: flex;
     justify-content: center;
     margin-bottom: 2em;
+  }
+  .label {
+    margin-top: 5px;
+    margin-right: 1em;
   }
 `;

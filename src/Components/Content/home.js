@@ -28,9 +28,7 @@ class Home extends Component {
           local = local.concat(data);
         });
       })
-      .catch(err => {
-        
-      });
+      .catch(err => {});
     this.setState({
       data: local,
       initialLoad: false
@@ -42,7 +40,7 @@ class Home extends Component {
 
   render() {
     if (this.state.initialLoad) {
-  return <Loading />;
+      return <Loading />;
     }
     return (
       <div style={{ display: 'flex', flexWrap: 'wrap' }}>

@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { withRouter } from 'react-router-dom';
-import { Input, Button, Modal } from 'antd';
+import { Input, Button, Modal, Select } from 'antd';
 import styled from 'styled-components';
 import { compose } from 'recompose';
 import { withAuthorization } from '../Session';
 import { withFirebase } from '../Firebase';
 import Loading from './modules/loading';
-import { Select } from 'antd';
 
+// eslint-disable-next-line prefer-destructuring
 const Option = Select.Option;
-// eslint-disable-next-line no-unused-vars
-const uuidv4 = require('uuid/v4');
 
 function LocationChange({ firebase }) {
   const [location, setLocation] = useState({
@@ -57,15 +55,20 @@ function LocationChange({ firebase }) {
       }
     }
   };
+  const characterValidate = char =>
+    char ? !!char.replace(/\s/g, '').match(/\S.+/gi) : false;
 
   const handlePull = async () => {
     if (
-      !(location.collection && location.document) ||
       !(
-        location.collection &&
-        location.document &&
-        location.subcollection &&
-        location.subdocument
+        characterValidate(location.collection) &&
+        characterValidate(location.document)
+      ) ||
+      !(
+        characterValidate(location.collection) &&
+        characterValidate(location.document) &&
+        characterValidate(location.subcollection) &&
+        characterValidate(location.subdocument)
       )
     ) {
       setError('入力されていない項目があります。');
@@ -129,6 +132,7 @@ function LocationChange({ firebase }) {
     } finally {
       setLoading(false);
     }
+    return true;
   };
   const pathDocref = firebase.db.collection('ArticlePathList').doc('pathlist');
 
@@ -136,7 +140,9 @@ function LocationChange({ firebase }) {
     pathDocref
       .get()
       .then(data => {
-        setPath(data.data().path);
+        if (data.exists) {
+          setPath(data.data().path);
+        }
       })
       .catch(pullerror => {
         throw pullerror;

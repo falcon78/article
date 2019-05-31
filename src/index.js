@@ -1,10 +1,11 @@
-import React from "react";
-import ReactDOM from "react-dom";
-import "./index.css";
-import App from "./Components/App/index.js";
-import * as serviceWorker from "./serviceWorker";
-import "antd/dist/antd.css";
-import Firebase, { FirebaseContext } from "./Components/Firebase/index";
+import React from 'react';
+import ReactDOM from 'react-dom';
+import './index.css';
+import App from './Components/App/index.js';
+import * as serviceWorker from './serviceWorker';
+import 'antd/dist/antd.css';
+import Firebase, { FirebaseContext } from './Components/Firebase/index';
+
 ReactDOM.render(
   <FirebaseContext.Provider value={new Firebase()}>
     <App />

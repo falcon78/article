@@ -12,7 +12,7 @@ import { withAuth } from '../Session/index';
 import Home from '../Content/home';
 import NotFound from '../notfound';
 import Edit from '../Content/edit';
-import locationChange from '../Content/locationChange';
+import locationChange from '../Content/LocationChange';
 
 // import PasswordForgetPage from '../PasswordForget';
 // import HomePage from '../Home';

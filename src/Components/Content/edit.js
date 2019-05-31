@@ -11,6 +11,7 @@ import * as ROUTES from '../../constants/routes';
 import MarkdownArticle from './supporters/container/organisms/markdownArticle';
 import DisplayLocation from './modules/DisplayLocation';
 import DeleteAndOrderButtons from './modules/DeleteAndOrderButtons';
+import moment from 'moment';
 
 const { TextArea } = Input;
 const uuidv4 = require('uuid/v4');
@@ -52,6 +53,9 @@ class Edit extends React.Component {
     .collection('Private')
     .doc(`${this.props.match.params.id}`);
 
+  characterValidate = char =>
+    char ? !!char.replace(/\s/g, '').match(/\S.+/gi) : false;
+
   fetchFirebase = async () => {
     await this.docref
       .get()
@@ -64,8 +68,8 @@ class Edit extends React.Component {
           location: {
             collection: fb_col,
             document: fb_doc,
-            subcollection: fb_subcol ? fb_subcol : '',
-            subdocument: fb_subdoc ? fb_subdoc : ''
+            subcollection: this.characterValidate(fb_subcol) ? fb_subcol : '',
+            subdocument: this.characterValidate(fb_subdoc) ? fb_subdoc : ''
           },
           title: data.data().title,
           section: data.data().section,
@@ -150,7 +154,7 @@ class Edit extends React.Component {
         image: this.state.image,
         lead: this.state.lead,
         section: this.state.section,
-        lastEdited: new Date().toISOString()
+        lastEdited: moment(new Date()).format('YYYYMMDDHHmm')
       })
       .then(() => {
         this.setState({
@@ -165,63 +169,71 @@ class Edit extends React.Component {
   };
 
   handlePublish = async () => {
-    const confirm = window.confirm('本当に公開しますか？');
-    if (confirm) {
-      let docref_publish = this.state.location.subdocument
-        ? this.props.firebase.db
-            .collection(this.state.location.collection)
-            .doc(this.state.location.document)
-            .collection(this.state.location.subcollection)
-            .doc(this.state.location.subdocument)
-        : this.props.firebase.db
-            .collection(this.state.location.collection)
-            .doc(this.state.location.document);
-      this.setState({
-        loading: true
-      });
+    const cardRef = this.props.firebase.db
+      .collection(this.state.location.collection)
+      .doc(this.state.location.document)
+      .collection('cardData');
 
-      this.docref
-        .update({
-          title: this.state.title,
+    const confirm = window.confirm('本当に公開しますか？');
+    if (!confirm) return false;
+    let docref_publish = this.state.location.subdocument
+      ? this.props.firebase.db
+          .collection(this.state.location.collection)
+          .doc(this.state.location.document)
+          .collection(this.state.location.subcollection)
+          .doc(this.state.location.subdocument)
+      : this.props.firebase.db
+          .collection(this.state.location.collection)
+          .doc(this.state.location.document);
+    this.setState({
+      loading: true
+    });
+
+    this.docref
+      .update({
+        title: this.state.title,
+        image: this.state.image,
+        lead: this.state.lead,
+        section: this.state.section,
+        lastEdited: moment(new Date()).format('YYYYMMDDHHmm')
+      })
+      .then(() => {
+        return this.docref.get();
+      })
+      .then(data => {
+        docref_publish.set(data.data());
+        return data;
+      })
+      .then(data => {
+        const cardLocation = data.data().cardLocation;
+        const cardRef = this.props.firebase.db
+          .collection(cardLocation.collection)
+          .doc(cardLocation.document)
+          .collection(cardLocation.subcollection)
+          .doc(cardLocation.subdocument);
+        return cardRef.set({
+          cardTitle: this.state.title,
+          id: data.data().id,
           image: this.state.image,
+          isOpenFlg: true,
           lead: this.state.lead,
-          section: this.state.section,
-          lastEdited: new Date().toISOString()
-        })
-        .then(() => {
-          this.docref.get().then(data => {
-            docref_publish
-              .set(data.data())
-              .then(() => {
-                this.docref
-                  .delete()
-                  .then(() => {
-                    this.setState({
-                      loading: false
-                    });
-                    this.props.history.push(ROUTES.LANDING);
-                  })
-                  .catch(error => {
-                    this.setState({
-                      error: 'エラーが発生しました。'
-                    });
-                    throw error;
-                  });
-              })
-              .catch(error => {
-                this.setState({
-                  error: 'エラーが発生しました。'
-                });
-                throw error;
-              });
-          });
-        })
-        .catch(() => {
-          this.setState({
-            error: ' エラーが発生しました。'
-          });
+          to: `/${data.data().to}/${data.data().id}`
         });
-    }
+      })
+      .then(() => {
+        return this.docref.delete();
+      })
+      .then(() => {
+        this.setState({
+          loading: false
+        });
+        this.props.history.push(ROUTES.LANDING);
+      })
+      .catch(error => {
+        this.setState({
+          error: `エラーが発生しました。 : ${error.message}`
+        });
+      });
   };
 
   handleShowModal = () => {

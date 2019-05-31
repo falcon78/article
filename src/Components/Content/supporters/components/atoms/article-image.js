@@ -3,7 +3,6 @@ import styled from 'styled-components';
 import PropTypes from 'prop-types';
 
 const ArticleImage = ({ image }) => {
-  console.log(image)
   return <ImageArea src={image} />;
 };
 

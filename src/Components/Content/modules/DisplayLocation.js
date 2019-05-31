@@ -5,7 +5,6 @@ const uuidv4 = require('uuid/v4');
 
 const DisplayLocation = ({ location }) => {
   const keys = Object.keys(location);
-  console.log(location);
   return (
     <div>
       {keys.map(key => (

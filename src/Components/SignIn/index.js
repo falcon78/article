@@ -21,7 +21,7 @@ class SignInForm extends Component {
     docref
       .get()
       .then(res => {
-        console.log(res.data())
+        console.log(res.data());
       })
       .catch(err => {
         console.log(err);
@@ -94,8 +94,9 @@ const Style = styled.div`
   display: flex;
   justify-content: center;
   input {
+    width: 80vw;
     margin: 1em;
-    width: 400px;
+    max-width: 400px;
   }
   form {
     display: flex;
@@ -107,7 +108,8 @@ const Style = styled.div`
     margin: 1em;
   }
   p {
-    width: 400px;
+    width: 80vw;
+    max-width: 400px;
     text-align: center;
   }
 `;

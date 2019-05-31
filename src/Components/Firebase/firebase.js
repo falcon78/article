@@ -1,15 +1,7 @@
 import firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/firestore';
-
-const config = {
-  apiKey: 'AIzaSyDF9F9RrbBPIf08InP93xQ-MJzlH_anHRk',
-  authDomain: 'autho-ce94e.firebaseapp.com',
-  databaseURL: 'https://autho-ce94e.firebaseio.com',
-  projectId: 'autho-ce94e',
-  storageBucket: 'autho-ce94e.appspot.com',
-  messagingSenderId: '20272200738'
-};
+import config from './credentials';
 
 class Firebase {
   constructor() {

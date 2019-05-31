@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { withRouter } from 'react-router-dom';
-import { Input, Button, Modal } from 'antd';
+import { Input, Button, Modal, Select } from 'antd';
 import styled from 'styled-components';
 import { compose } from 'recompose';
 import { withAuthorization } from '../Session';
 import { withFirebase } from '../Firebase';
 import Loading from './modules/loading';
 
-const uuidv4 = require('uuid/v4');
+// eslint-disable-next-line prefer-destructuring
+const Option = Select.Option;
 
 function LocationChange({ firebase }) {
   const [location, setLocation] = useState({
@@ -17,6 +18,7 @@ function LocationChange({ firebase }) {
     subdocument: ''
   });
 
+  const [path, setPath] = useState({});
   const [textInput, setInput] = useState('');
   const [error, setError] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -33,11 +35,11 @@ function LocationChange({ firebase }) {
   };
 
   const handleChange = event => {
-    let inputValue = event.target.value;
+    const inputValue = event.target.value;
     setInput(inputValue);
     if (inputValue.match(matchRegex)) {
       const inputArray = inputValue.split('/').filter(value => !!value);
-      
+
       if (inputArray.length === 2) {
         setLocation({
           collection: inputArray[0],
@@ -53,15 +55,20 @@ function LocationChange({ firebase }) {
       }
     }
   };
+  const characterValidate = char =>
+    char ? !!char.replace(/\s/g, '').match(/\S.+/gi) : false;
 
   const handlePull = async () => {
     if (
-      !(location.collection && location.document) ||
       !(
-        location.collection &&
-        location.document &&
-        location.subcollection &&
-        location.subdocument
+        characterValidate(location.collection) &&
+        characterValidate(location.document)
+      ) ||
+      !(
+        characterValidate(location.collection) &&
+        characterValidate(location.document) &&
+        characterValidate(location.subcollection) &&
+        characterValidate(location.subdocument)
       )
     ) {
       setError('入力されていない項目があります。');
@@ -125,7 +132,23 @@ function LocationChange({ firebase }) {
     } finally {
       setLoading(false);
     }
+    return true;
   };
+  const pathDocref = firebase.db.collection('ArticlePathList').doc('pathlist');
+
+  useEffect(() => {
+    pathDocref
+      .get()
+      .then(data => {
+        if (data.exists) {
+          setPath(data.data().path);
+        }
+      })
+      .catch(pullerror => {
+        throw pullerror;
+      });
+  }, []);
+
   const keys = Object.keys(location);
   let input = [];
   keys.forEach(key => {
@@ -139,8 +162,25 @@ function LocationChange({ firebase }) {
     );
   });
 
+  const handleSelect = value => {
+    const articlepath = value.split('/');
+    setLocation({
+      ...location,
+      collection: articlepath[0],
+      document: articlepath[1],
+      subcollection: articlepath[2]
+    });
+  };
+
   return (
     <Style>
+      <div className="select">
+        <Select style={{ width: '300px' }} onChange={handleSelect}>
+          {Object.keys(path).map(key => (
+            <Option value={path[key]}>{key}</Option>
+          ))}
+        </Select>
+      </div>
       <Input
         value={textInput}
         placeholder="パスを入力してください。"
@@ -199,5 +239,8 @@ const Style = styled.div`
   .spacer {
     width: 100vw;
     height: 3em;
+  }
+  .select {
+    margin-bottom: 2em;
   }
 `;

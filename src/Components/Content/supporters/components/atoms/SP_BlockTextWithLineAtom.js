@@ -1,11 +1,11 @@
-import React from "react";
-import styled from "styled-components";
+import React from 'react';
+import styled from 'styled-components';
 
-const HeadingBorder = props => {
+const HeadingBorder = ({ text }) => {
   return (
     <Border>
-      <Heading color={props.color} className="header">
-        {props.text}
+      <Heading color="white" className="header">
+        {text}
       </Heading>
     </Border>
   );
@@ -18,11 +18,11 @@ const Heading = styled.span`
   display: inline-block;
   max-width: 80%;
   position: relative;
-  background: ${props => (props.color ? props.color : "#f6f6f6")};
+  background: ${props => (props.color ? props.color : '#f6f6f6')};
   word-wrap: break-word;
   font-size: 18px;
-  color: #3575ab;
-  z-index: 2;
+  color: #009688;;
+  z-index: -1;
   padding: 0 1em;
 `;
 
@@ -31,13 +31,13 @@ const Border = styled.h2`
   position: relative;
   font-weight: bold;
   &::before {
-    content: "";
+    content: '';
     display: block;
     width: 100%;
     height: 2px;
     position: absolute;
     top: 60%;
-    background-color: #3575ab;
-    z-index: 1;
+    background-color: #009688;
+    z-index: -2;
   }
 `;

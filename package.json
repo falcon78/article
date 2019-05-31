@@ -8,6 +8,7 @@
     "eslint-config-airbnb": "^17.1.0",
     "eslint-config-prettier": "^4.2.0",
     "firebase": "^5.9.2",
+    "moment": "^2.24.0",
     "prettier": "^1.17.1",
     "prop-types": "^15.7.2",
     "react": "^16.8.6",
@@ -21,7 +22,7 @@
     "uuid": "^3.3.2"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "set PORT=3001 && react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

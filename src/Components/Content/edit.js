@@ -12,6 +12,7 @@ import MarkdownArticle from './supporters/container/organisms/markdownArticle';
 import DisplayLocation from './modules/DisplayLocation';
 import DeleteAndOrderButtons from './modules/DeleteAndOrderButtons';
 import moment from 'moment';
+import Switch from 'antd/es/switch';
 
 const { TextArea } = Input;
 const uuidv4 = require('uuid/v4');
@@ -45,7 +46,8 @@ class Edit extends React.Component {
       initialLoad: true,
       deleteModal: false,
       confirmLoading: false,
-      deleteError: ''
+      deleteError: '',
+      viewOnly: false
     };
   }
 
@@ -304,8 +306,20 @@ class Edit extends React.Component {
     }
   };
 
+  onToggleChange = checked => {
+    this.setState({
+      viewOnly: checked
+    });
+  };
+
   componentDidMount() {
     this.fetchFirebase();
+    const { innerWidth: width } = window;
+    if (width < 480) {
+      this.setState({
+        viewOnly: true
+      });
+    }
   }
 
   render() {
@@ -316,155 +330,185 @@ class Edit extends React.Component {
     let match = this.state.title_source.filter(word => word.match(regex));
 
     return (
-      <Style>
-        <div className="left">
-          <div style={{ display: 'flex', justifyContent: 'space-between' }} />
-          <DisplayLocation location={this.state.location} />
-
-          <Input
-            spellcheck="false"
-            style={{ margin: '1em 0' }}
-            name="title"
-            onChange={this.handleChange}
-            value={this.state.title}
-          />
-
-          <div
+      <div>
+        <div
+          style={{
+            display: 'flex',
+            width: '100%',
+            justifyContent: 'center'
+          }}
+        >
+          <p
             style={{
-              width: '100%',
-              display: 'flex',
-              justifyContent: 'space-between'
+              marginRight: '10px'
             }}
           >
-            <Button type="primary">メイン画像</Button>
-          </div>
-          <TextArea
-            spellcheck="false"
-            style={{ margin: '0.5em 0', marginTop: '2px' }}
-            autosize={{ minRows: 2, maxRows: 100 }}
-            name="image"
-            onChange={this.handleChange}
-            value={this.state.image}
-          />
+            編集画面を非表示
+          </p>
+          <Switch checked={this.state.viewOnly} defaultChecked={false} onChange={this.onToggleChange} />
+        </div>
+        <Style>
+          {!this.state.viewOnly && (
+            <div className="left">
+              <div
+                style={{ display: 'flex', justifyContent: 'space-between' }}
+              />
+              <DisplayLocation location={this.state.location} />
 
-          <div
-            style={{
-              width: '100%',
-              display: 'flex',
-              justifyContent: 'space-between'
-            }}
-          >
-            <Button type="primary">リード文書 (カード)</Button>
-          </div>
-          <TextArea
-            spellcheck="false"
-            style={{ margin: '0.5em 0', marginTop: '2px' }}
-            autosize={{ minRows: 1, maxRows: 100 }}
-            name="lead"
-            onChange={this.handleChange}
-            value={this.state.lead}
-          />
+              <Input
+                spellcheck="false"
+                style={{ margin: '1em 0' }}
+                name="title"
+                onChange={this.handleChange}
+                value={this.state.title}
+              />
 
-          {this.state.section.map((content, index) => {
-            let articleKey = Object.keys(content).filter(
-              key => key !== 'idKey'
-            );
-            if (articleKey.length === 2 && articleKey.includes('image')) {
-              articleKey[0] = 'image';
-              articleKey[1] = 'caption';
-            } else if (
-              articleKey.length === 2 &&
-              articleKey.includes('colortext')
-            ) {
-              articleKey[0] = 'colortext';
-              articleKey[1] = 'color';
-            }
-            return (
-              <div key={content.idKey}>
-                <div className="spacebetween">
-                  <div>
-                    {articleKey.map((key, index) => (
-                      <Button
-                        key={index}
-                        type={index === 0 ? 'primary' : 'danger'}
-                      >
-                        {key}
-                      </Button>
+              <div
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  justifyContent: 'space-between'
+                }}
+              >
+                <Button type="primary">メイン画像</Button>
+              </div>
+              <TextArea
+                spellcheck="false"
+                style={{ margin: '0.5em 0', marginTop: '2px' }}
+                autosize={{ minRows: 2, maxRows: 100 }}
+                name="image"
+                onChange={this.handleChange}
+                value={this.state.image}
+              />
+
+              <div
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  justifyContent: 'space-between'
+                }}
+              >
+                <Button type="primary">リード文書 (カード)</Button>
+              </div>
+              <TextArea
+                spellcheck="false"
+                style={{ margin: '0.5em 0', marginTop: '2px' }}
+                autosize={{ minRows: 1, maxRows: 100 }}
+                name="lead"
+                onChange={this.handleChange}
+                value={this.state.lead}
+              />
+
+              {this.state.section.map((content, index) => {
+                let articleKey = Object.keys(content).filter(
+                  key => key !== 'idKey'
+                );
+                if (articleKey.length === 2 && articleKey.includes('image')) {
+                  articleKey[0] = 'image';
+                  articleKey[1] = 'caption';
+                } else if (
+                  articleKey.length === 2 &&
+                  articleKey.includes('colortext')
+                ) {
+                  articleKey[0] = 'colortext';
+                  articleKey[1] = 'color';
+                }
+                return (
+                  <div key={content.idKey}>
+                    <div className="spacebetween">
+                      <div>
+                        {articleKey.map((key, index) => (
+                          <Button
+                            key={index}
+                            type={index === 0 ? 'primary' : 'danger'}
+                          >
+                            {key}
+                          </Button>
+                        ))}
+                      </div>
+                      <DeleteAndOrderButtons
+                        handleOrder={this.handleOrder}
+                        handleRemove={this.handleDeleteItem}
+                        index={index}
+                      />
+                    </div>
+                    {articleKey.map((key, keyIndex) => (
+                      <TextArea
+                        spellCheck={false}
+                        key={keyIndex}
+                        style={{ margin: '0.5em 0', marginTop: '2px' }}
+                        autosize={{ minRows: 1, maxRows: 100 }}
+                        name={index}
+                        onChange={e => this.handleChangeSection(key, e)}
+                        value={this.state.section[index][key]}
+                      />
                     ))}
                   </div>
-                  <DeleteAndOrderButtons
-                    handleOrder={this.handleOrder}
-                    handleRemove={this.handleDeleteItem}
-                    index={index}
-                  />
-                </div>
-                {articleKey.map((key, keyIndex) => (
-                  <TextArea
-                    spellCheck={false}
-                    key={keyIndex}
-                    style={{ margin: '0.5em 0', marginTop: '2px' }}
-                    autosize={{ minRows: 1, maxRows: 100 }}
-                    name={index}
-                    onChange={e => this.handleChangeSection(key, e)}
-                    value={this.state.section[index][key]}
-                  />
-                ))}
-              </div>
-            );
-          })}
-          <AutoComplete
-            dataSource={match}
-            style={{ width: 200, marginTop: '1em' }}
-            onSelect={this.handleAdd}
-            onSearch={this.handleSearch}
-            value={this.state.add}
-            placeholder="入力/選択"
-          />
-          <Button style={{ marginLeft: '1em' }} onClick={this.handleNewAdd}>
-            追加
-          </Button>
-          <br />
-          {this.state.loading && <Loading inline />}
-          {this.state.error && <p>{this.state.error}</p>}
-          <Button style={{ margin: '1em 2px 5px' }} onClick={this.handleSubmit}>
-            更新
-          </Button>
-          <Button
-            style={{ margin: '1em 2px 5px' }}
-            onClick={this.handlePublish}
-          >
-            公開
-          </Button>
-          <Button
-            style={{ margin: '1em 2px 2em' }}
-            onClick={this.handleShowModal}
-            type="danger"
-          >
-            削除
-          </Button>
-          <Modal
-            title="削除"
-            visible={this.state.deleteModal}
-            onOk={this.handleDelete}
-            confirmLoading={this.state.confirmLoading}
-            onCancel={this.handleShowModal}
-            centered
-          >
-            <p>{'本当に削除しますか？'}</p>
-            {this.state.deleteError && <h3>this.state.deleteError</h3>}
-          </Modal>
-        </div>
+                );
+              })}
+              <AutoComplete
+                dataSource={match}
+                style={{ width: 200, marginTop: '1em' }}
+                onSelect={this.handleAdd}
+                onSearch={this.handleSearch}
+                value={this.state.add}
+                placeholder="入力/選択"
+              />
+              <Button style={{ marginLeft: '1em' }} onClick={this.handleNewAdd}>
+                追加
+              </Button>
+              <br />
+              {this.state.loading && <Loading inline />}
+              {this.state.error && <p>{this.state.error}</p>}
+              <Button
+                style={{ margin: '1em 2px 5px' }}
+                onClick={this.handleSubmit}
+              >
+                更新
+              </Button>
+              <Button
+                style={{ margin: '1em 2px 5px' }}
+                onClick={this.handlePublish}
+              >
+                公開
+              </Button>
+              <Button
+                style={{ margin: '1em 2px 2em' }}
+                onClick={this.handleShowModal}
+                type="danger"
+              >
+                削除
+              </Button>
+              <Modal
+                title="削除"
+                visible={this.state.deleteModal}
+                onOk={this.handleDelete}
+                confirmLoading={this.state.confirmLoading}
+                onCancel={this.handleShowModal}
+                centered
+              >
+                <p>{'本当に削除しますか？'}</p>
+                {this.state.deleteError && <h3>this.state.deleteError</h3>}
+              </Modal>
+            </div>
+          )}
 
-        <div className="right">
-          <MarkdownArticle
-            style={{ marginTop: '1em' }}
-            section={this.state.section}
-            image={this.state.image}
-            title={this.state.title}
-            lead={this.state.lead}
-          />
-        </div>
-      </Style>
+          <div
+            style={{
+              width: this.state.viewOnly ? '90%' : '45vw'
+            }}
+            className="right"
+          >
+            <MarkdownArticle
+              style={{ marginTop: '1em' }}
+              section={this.state.section}
+              image={this.state.image}
+              title={this.state.title}
+              lead={this.state.lead}
+            />
+          </div>
+        </Style>
+      </div>
     );
   }
 }
@@ -478,16 +522,13 @@ export default compose(
 
 const Style = styled.div`
   display: flex;
-  justify-content: center;
+  justify-content: space-around;
   .left {
-    margin: 0.5em;
+    margin: 0 0 0 0;
     width: 45vw;
-    height: 90vh;
   }
   .right {
-    margin: 2em 0.5em 0.5em 3em;
-    width: 45vw;
-    height: 90vh;
+    margin: 0 0 0 0;
   }
   .container {
     display: flex;

@@ -1,6 +1,6 @@
 //@format
 import React from 'react';
-import { AutoComplete, Button, Input, Modal } from 'antd';
+import { AutoComplete, Button, Input, Modal, Tag } from 'antd';
 import { withAuthorization } from '../Session/index';
 import { withFirebase } from '../Firebase/index';
 import { withRouter } from 'react-router-dom';
@@ -13,6 +13,7 @@ import DisplayLocation from './modules/DisplayLocation';
 import DeleteAndOrderButtons from './modules/DeleteAndOrderButtons';
 import moment from 'moment';
 import Switch from 'antd/es/switch';
+import { Flipper, Flipped } from 'react-flip-toolkit';
 
 const { TextArea } = Input;
 const uuidv4 = require('uuid/v4');
@@ -47,7 +48,8 @@ class Edit extends React.Component {
       deleteModal: false,
       confirmLoading: false,
       deleteError: '',
-      viewOnly: false
+      viewOnly: false,
+      orderChange: new Date().getTime()
     };
   }
 
@@ -197,13 +199,20 @@ class Edit extends React.Component {
         image: this.state.image,
         lead: this.state.lead,
         section: this.state.section,
-        lastEdited: moment(new Date()).format('YYYYMMDDHHmm')
+        lastEdited: moment(new Date()).format('YYYY-MM-DD HH:mm')
       })
       .then(() => {
         return this.docref.get();
       })
       .then(data => {
         docref_publish.set(data.data());
+        return data;
+      })
+      .then(data => {
+        this.props.firebase.db
+          .collection('Published')
+          .doc()
+          .set(data.data());
         return data;
       })
       .then(data => {
@@ -279,7 +288,8 @@ class Edit extends React.Component {
       localsection[index] = localsection[index - 1];
       localsection[index - 1] = selectedElement;
       this.setState({
-        section: localsection
+        section: localsection,
+        orderChange: new Date().getTime()
       });
     } else if (
       direction === 'down' &&
@@ -291,7 +301,8 @@ class Edit extends React.Component {
       localsection[index] = localsection[index + 1];
       localsection[index + 1] = selectedElement;
       this.setState({
-        section: localsection
+        section: localsection,
+        orderChange: new Date().getTime()
       });
     }
   };
@@ -334,7 +345,7 @@ class Edit extends React.Component {
         <div
           style={{
             display: 'flex',
-            width: '100%',
+            width: this.state.viewOnly ? '100%' : '45%',
             justifyContent: 'center'
           }}
         >
@@ -345,7 +356,11 @@ class Edit extends React.Component {
           >
             編集画面を非表示
           </p>
-          <Switch checked={this.state.viewOnly} defaultChecked={false} onChange={this.onToggleChange} />
+          <Switch
+            checked={this.state.viewOnly}
+            defaultChecked={false}
+            onChange={this.onToggleChange}
+          />
         </div>
         <Style>
           {!this.state.viewOnly && (
@@ -354,10 +369,17 @@ class Edit extends React.Component {
                 style={{ display: 'flex', justifyContent: 'space-between' }}
               />
               <DisplayLocation location={this.state.location} />
-
+              <Tag
+                style={{
+                  marginTop: '1em'
+                }}
+                color="purple"
+              >
+                タイトル
+              </Tag>
               <Input
                 spellcheck="false"
-                style={{ margin: '1em 0' }}
+                style={{ margin: '0 0 1em 0' }}
                 name="title"
                 onChange={this.handleChange}
                 value={this.state.title}
@@ -370,11 +392,11 @@ class Edit extends React.Component {
                   justifyContent: 'space-between'
                 }}
               >
-                <Button type="primary">メイン画像</Button>
+                <Tag color="red">メイン画像</Tag>
               </div>
               <TextArea
                 spellcheck="false"
-                style={{ margin: '0.5em 0', marginTop: '2px' }}
+                style={{}}
                 autosize={{ minRows: 2, maxRows: 100 }}
                 name="image"
                 onChange={this.handleChange}
@@ -388,64 +410,60 @@ class Edit extends React.Component {
                   justifyContent: 'space-between'
                 }}
               >
-                <Button type="primary">リード文書 (カード)</Button>
+                <Tag color="purple">リード文書 (カード)</Tag>
               </div>
               <TextArea
                 spellcheck="false"
-                style={{ margin: '0.5em 0', marginTop: '2px' }}
+                style={{ marginBottom: 20 }}
                 autosize={{ minRows: 1, maxRows: 100 }}
                 name="lead"
                 onChange={this.handleChange}
                 value={this.state.lead}
               />
-
-              {this.state.section.map((content, index) => {
-                let articleKey = Object.keys(content).filter(
-                  key => key !== 'idKey'
-                );
-                if (articleKey.length === 2 && articleKey.includes('image')) {
-                  articleKey[0] = 'image';
-                  articleKey[1] = 'caption';
-                } else if (
-                  articleKey.length === 2 &&
-                  articleKey.includes('colortext')
-                ) {
-                  articleKey[0] = 'colortext';
-                  articleKey[1] = 'color';
-                }
-                return (
-                  <div key={content.idKey}>
-                    <div className="spacebetween">
-                      <div>
-                        {articleKey.map((key, index) => (
-                          <Button
-                            key={index}
-                            type={index === 0 ? 'primary' : 'danger'}
-                          >
-                            {key}
-                          </Button>
+              <Flipper flipKey={this.state.orderChange}>
+                {this.state.section.map((content, index) => {
+                  let articleKey = Object.keys(content).filter(
+                    key => key !== 'idKey'
+                  );
+                  if (articleKey.length === 2 && articleKey.includes('image')) {
+                    articleKey[0] = 'image';
+                    articleKey[1] = 'caption';
+                  } else if (
+                    articleKey.length === 2 &&
+                    articleKey.includes('colortext')
+                  ) {
+                    articleKey[0] = 'colortext';
+                    articleKey[1] = 'color';
+                  }
+                  return (
+                    <Flipped key={content.idKey} flipId={content.idKey}>
+                      <div className="section">
+                        <div className="orderButtons">
+                          <DeleteAndOrderButtons
+                            handleOrder={this.handleOrder}
+                            handleRemove={this.handleDeleteItem}
+                            index={index}
+                          />
+                        </div>
+                        {articleKey.map((key, keyIndex) => (
+                          <div>
+                            <Tag color="red">{key}</Tag>
+                            <TextArea
+                              spellCheck={false}
+                              key={keyIndex}
+                              style={{ margin: '0.5em 0', marginTop: '2px' }}
+                              autosize={{ minRows: 1, maxRows: 100 }}
+                              name={index}
+                              onChange={e => this.handleChangeSection(key, e)}
+                              value={this.state.section[index][key]}
+                            />
+                          </div>
                         ))}
                       </div>
-                      <DeleteAndOrderButtons
-                        handleOrder={this.handleOrder}
-                        handleRemove={this.handleDeleteItem}
-                        index={index}
-                      />
-                    </div>
-                    {articleKey.map((key, keyIndex) => (
-                      <TextArea
-                        spellCheck={false}
-                        key={keyIndex}
-                        style={{ margin: '0.5em 0', marginTop: '2px' }}
-                        autosize={{ minRows: 1, maxRows: 100 }}
-                        name={index}
-                        onChange={e => this.handleChangeSection(key, e)}
-                        value={this.state.section[index][key]}
-                      />
-                    ))}
-                  </div>
-                );
-              })}
+                    </Flipped>
+                  );
+                })}
+              </Flipper>
               <AutoComplete
                 dataSource={match}
                 style={{ width: 200, marginTop: '1em' }}
@@ -495,7 +513,12 @@ class Edit extends React.Component {
 
           <div
             style={{
-              width: this.state.viewOnly ? '90%' : '45vw'
+              width: this.state.viewOnly ? '98%' : '45vw',
+              top: '70px',
+              right: '10px',
+              position: this.state.viewOnly ? 'static': 'fixed',
+              overflow: this.state.viewOnly ? 'visible': 'auto'
+
             }}
             className="right"
           >
@@ -526,9 +549,11 @@ const Style = styled.div`
   .left {
     margin: 0 0 0 0;
     width: 45vw;
+    margin-right: 45vw;
   }
   .right {
     margin: 0 0 0 0;
+    height: 88vh;
   }
   .container {
     display: flex;
@@ -539,5 +564,25 @@ const Style = styled.div`
     width: 100%;
     display: flex;
     justify-content: space-between;
+  }
+  .orderButtons {
+    display: flex;
+    width: 45vw;
+    justify-content: flex-end;
+    position: absolute;
+    top: 5px;
+    right: -2px;
+    button {
+      margin-bottom: 10px;
+    }
+  }
+  .section {
+    position: relative;
+    background: #f5f5f5;
+    padding: 1em;
+    margin-bottom: 14px;
+    border-color: whitesmoke;
+    border-radius: 10px;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
   }
 `;

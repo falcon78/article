@@ -1,7 +1,11 @@
 import React from 'react';
 import { Button } from 'antd';
 
-const DeleteAndOrderButtons = ({ handleOrder, handleRemove, index }) => {
+const DeleteAndOrderButtons = ({
+  handleOrder,
+  handleRemove,
+  index
+}) => {
   return (
     <div
       style={{
@@ -16,6 +20,7 @@ const DeleteAndOrderButtons = ({ handleOrder, handleRemove, index }) => {
         icon="arrow-up"
         onClick={() => handleOrder('up', index)}
       />
+
       <Button
         type="primary"
         shape="circle"

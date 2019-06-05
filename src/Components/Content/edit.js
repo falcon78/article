@@ -1,6 +1,6 @@
 //@format
 import React from 'react';
-import { AutoComplete, Button, Input, Modal } from 'antd';
+import { AutoComplete, Button, Input, Modal, Tag } from 'antd';
 import { withAuthorization } from '../Session/index';
 import { withFirebase } from '../Firebase/index';
 import { withRouter } from 'react-router-dom';
@@ -13,6 +13,7 @@ import DisplayLocation from './modules/DisplayLocation';
 import DeleteAndOrderButtons from './modules/DeleteAndOrderButtons';
 import moment from 'moment';
 import Switch from 'antd/es/switch';
+import { Flipper, Flipped } from 'react-flip-toolkit';
 
 const { TextArea } = Input;
 const uuidv4 = require('uuid/v4');
@@ -47,7 +48,8 @@ class Edit extends React.Component {
       deleteModal: false,
       confirmLoading: false,
       deleteError: '',
-      viewOnly: false
+      viewOnly: false,
+      orderChange: new Date().getTime()
     };
   }
 
@@ -286,7 +288,8 @@ class Edit extends React.Component {
       localsection[index] = localsection[index - 1];
       localsection[index - 1] = selectedElement;
       this.setState({
-        section: localsection
+        section: localsection,
+        orderChange: new Date().getTime()
       });
     } else if (
       direction === 'down' &&
@@ -298,7 +301,8 @@ class Edit extends React.Component {
       localsection[index] = localsection[index + 1];
       localsection[index + 1] = selectedElement;
       this.setState({
-        section: localsection
+        section: localsection,
+        orderChange: new Date().getTime()
       });
     }
   };
@@ -409,54 +413,51 @@ class Edit extends React.Component {
                 onChange={this.handleChange}
                 value={this.state.lead}
               />
-
-              {this.state.section.map((content, index) => {
-                let articleKey = Object.keys(content).filter(
-                  key => key !== 'idKey'
-                );
-                if (articleKey.length === 2 && articleKey.includes('image')) {
-                  articleKey[0] = 'image';
-                  articleKey[1] = 'caption';
-                } else if (
-                  articleKey.length === 2 &&
-                  articleKey.includes('colortext')
-                ) {
-                  articleKey[0] = 'colortext';
-                  articleKey[1] = 'color';
-                }
-                return (
-                  <div key={content.idKey}>
-                    <div className="spacebetween">
-                      <div>
-                        {articleKey.map((key, index) => (
-                          <Button
-                            key={index}
-                            type={index === 0 ? 'primary' : 'danger'}
-                          >
-                            {key}
-                          </Button>
+              <Flipper flipKey={this.state.orderChange}>
+                {this.state.section.map((content, index) => {
+                  let articleKey = Object.keys(content).filter(
+                    key => key !== 'idKey'
+                  );
+                  if (articleKey.length === 2 && articleKey.includes('image')) {
+                    articleKey[0] = 'image';
+                    articleKey[1] = 'caption';
+                  } else if (
+                    articleKey.length === 2 &&
+                    articleKey.includes('colortext')
+                  ) {
+                    articleKey[0] = 'colortext';
+                    articleKey[1] = 'color';
+                  }
+                  return (
+                    <Flipped key={content.idKey} flipId={content.idKey}>
+                      <div className="section">
+                        <div className="orderButtons">
+                          <DeleteAndOrderButtons
+                            handleOrder={this.handleOrder}
+                            handleRemove={this.handleDeleteItem}
+                            index={index}
+                            length={this.state.section.length}
+                          />
+                        </div>
+                        {articleKey.map((key, keyIndex) => (
+                          <div>
+                            <Tag>{key}</Tag>
+                            <TextArea
+                              spellCheck={false}
+                              key={keyIndex}
+                              style={{ margin: '0.5em 0', marginTop: '2px' }}
+                              autosize={{ minRows: 1, maxRows: 100 }}
+                              name={index}
+                              onChange={e => this.handleChangeSection(key, e)}
+                              value={this.state.section[index][key]}
+                            />
+                          </div>
                         ))}
                       </div>
-                      <DeleteAndOrderButtons
-                        handleOrder={this.handleOrder}
-                        handleRemove={this.handleDeleteItem}
-                        index={index}
-                      />
-                    </div>
-                    {articleKey.map((key, keyIndex) => (
-                      <TextArea
-                        spellCheck={false}
-                        key={keyIndex}
-                        style={{ margin: '0.5em 0', marginTop: '2px' }}
-                        autosize={{ minRows: 1, maxRows: 100 }}
-                        name={index}
-                        onChange={e => this.handleChangeSection(key, e)}
-                        value={this.state.section[index][key]}
-                      />
-                    ))}
-                  </div>
-                );
-              })}
+                    </Flipped>
+                  );
+                })}
+              </Flipper>
               <AutoComplete
                 dataSource={match}
                 style={{ width: 200, marginTop: '1em' }}
@@ -537,9 +538,14 @@ const Style = styled.div`
   .left {
     margin: 0 0 0 0;
     width: 45vw;
+    margin-right: 45vw;
   }
   .right {
+    position: fixed;
     margin: 0 0 0 0;
+    overflow: auto;
+    height: 80vh;
+    right: 10px;
   }
   .container {
     display: flex;
@@ -550,5 +556,25 @@ const Style = styled.div`
     width: 100%;
     display: flex;
     justify-content: space-between;
+  }
+  .orderButtons {
+    display: flex;
+    width: 45vw;
+    justify-content: flex-end;
+    position: absolute;
+    top: 5px;
+    right: -2px;
+    button {
+      margin-bottom: 10px;
+    }
+  }
+  .section {
+    position: relative;
+    background: #f5f5f5;
+    padding: 1em;
+    margin-bottom: 14px;
+    border-color: whitesmoke;
+    border-radius: 10px;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
   }
 `;

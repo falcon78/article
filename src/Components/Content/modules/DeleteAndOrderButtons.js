@@ -1,7 +1,12 @@
 import React from 'react';
 import { Button } from 'antd';
 
-const DeleteAndOrderButtons = ({ handleOrder, handleRemove, index }) => {
+const DeleteAndOrderButtons = ({
+  handleOrder,
+  handleRemove,
+  index,
+  length
+}) => {
   return (
     <div
       style={{
@@ -10,18 +15,22 @@ const DeleteAndOrderButtons = ({ handleOrder, handleRemove, index }) => {
         justifyContent: 'space-around'
       }}
     >
-      <Button
-        type="primary"
-        shape="circle"
-        icon="arrow-up"
-        onClick={() => handleOrder('up', index)}
-      />
-      <Button
-        type="primary"
-        shape="circle"
-        icon="arrow-down"
-        onClick={() => handleOrder('down', index)}
-      />
+      {index !== 0 && (
+        <Button
+          type="primary"
+          shape="circle"
+          icon="arrow-up"
+          onClick={() => handleOrder('up', index)}
+        />
+      )}
+      {index !== length && (
+        <Button
+          type="primary"
+          shape="circle"
+          icon="arrow-down"
+          onClick={() => handleOrder('down', index)}
+        />
+      )}
       <Button
         type="danger"
         shape="circle"

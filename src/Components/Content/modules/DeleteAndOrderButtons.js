@@ -4,8 +4,7 @@ import { Button } from 'antd';
 const DeleteAndOrderButtons = ({
   handleOrder,
   handleRemove,
-  index,
-  length
+  index
 }) => {
   return (
     <div
@@ -15,22 +14,19 @@ const DeleteAndOrderButtons = ({
         justifyContent: 'space-around'
       }}
     >
-      {index !== 0 && (
-        <Button
-          type="primary"
-          shape="circle"
-          icon="arrow-up"
-          onClick={() => handleOrder('up', index)}
-        />
-      )}
-      {index !== length && (
-        <Button
-          type="primary"
-          shape="circle"
-          icon="arrow-down"
-          onClick={() => handleOrder('down', index)}
-        />
-      )}
+      <Button
+        type="primary"
+        shape="circle"
+        icon="arrow-up"
+        onClick={() => handleOrder('up', index)}
+      />
+
+      <Button
+        type="primary"
+        shape="circle"
+        icon="arrow-down"
+        onClick={() => handleOrder('down', index)}
+      />
       <Button
         type="danger"
         shape="circle"

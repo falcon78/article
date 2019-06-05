@@ -345,7 +345,7 @@ class Edit extends React.Component {
         <div
           style={{
             display: 'flex',
-            width: '100%',
+            width: this.state.viewOnly ? '100%' : '45%',
             justifyContent: 'center'
           }}
         >
@@ -369,10 +369,17 @@ class Edit extends React.Component {
                 style={{ display: 'flex', justifyContent: 'space-between' }}
               />
               <DisplayLocation location={this.state.location} />
-
+              <Tag
+                style={{
+                  marginTop: '1em'
+                }}
+                color="purple"
+              >
+                タイトル
+              </Tag>
               <Input
                 spellcheck="false"
-                style={{ margin: '1em 0' }}
+                style={{ margin: '0 0 1em 0' }}
                 name="title"
                 onChange={this.handleChange}
                 value={this.state.title}
@@ -385,11 +392,11 @@ class Edit extends React.Component {
                   justifyContent: 'space-between'
                 }}
               >
-                <Button type="primary">メイン画像</Button>
+                <Tag color="red">メイン画像</Tag>
               </div>
               <TextArea
                 spellcheck="false"
-                style={{ margin: '0.5em 0', marginTop: '2px' }}
+                style={{}}
                 autosize={{ minRows: 2, maxRows: 100 }}
                 name="image"
                 onChange={this.handleChange}
@@ -403,11 +410,11 @@ class Edit extends React.Component {
                   justifyContent: 'space-between'
                 }}
               >
-                <Button type="primary">リード文書 (カード)</Button>
+                <Tag color="purple">リード文書 (カード)</Tag>
               </div>
               <TextArea
                 spellcheck="false"
-                style={{ margin: '0.5em 0', marginTop: '2px' }}
+                style={{ marginBottom: 20 }}
                 autosize={{ minRows: 1, maxRows: 100 }}
                 name="lead"
                 onChange={this.handleChange}
@@ -436,12 +443,11 @@ class Edit extends React.Component {
                             handleOrder={this.handleOrder}
                             handleRemove={this.handleDeleteItem}
                             index={index}
-                            length={this.state.section.length}
                           />
                         </div>
                         {articleKey.map((key, keyIndex) => (
                           <div>
-                            <Tag>{key}</Tag>
+                            <Tag color="red">{key}</Tag>
                             <TextArea
                               spellCheck={false}
                               key={keyIndex}
@@ -507,7 +513,12 @@ class Edit extends React.Component {
 
           <div
             style={{
-              width: this.state.viewOnly ? '90%' : '45vw'
+              width: this.state.viewOnly ? '98%' : '45vw',
+              top: '70px',
+              right: '10px',
+              position: this.state.viewOnly ? 'static': 'fixed',
+              overflow: this.state.viewOnly ? 'visible': 'auto'
+
             }}
             className="right"
           >
@@ -541,11 +552,8 @@ const Style = styled.div`
     margin-right: 45vw;
   }
   .right {
-    position: fixed;
     margin: 0 0 0 0;
-    overflow: auto;
-    height: 80vh;
-    right: 10px;
+    height: 88vh;
   }
   .container {
     display: flex;

@@ -1,10 +1,9 @@
 /* eslint-disable react/jsx-one-expression-per-line */
 import React, { useState, useEffect } from 'react';
 import { withRouter } from 'react-router-dom';
-import { Input, Button, Modal, Select } from 'antd';
+import { Card, Input, Button, Modal, Select } from 'antd';
 import styled from 'styled-components';
 import { compose } from 'recompose';
-import { Card } from 'antd';
 import { withAuthorization } from '../Session';
 import { withFirebase } from '../Firebase';
 import Loading from './modules/loading';

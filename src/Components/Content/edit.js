@@ -197,13 +197,20 @@ class Edit extends React.Component {
         image: this.state.image,
         lead: this.state.lead,
         section: this.state.section,
-        lastEdited: moment(new Date()).format('YYYYMMDDHHmm')
+        lastEdited: moment(new Date()).format('YYYY-MM-DD HH:mm')
       })
       .then(() => {
         return this.docref.get();
       })
       .then(data => {
         docref_publish.set(data.data());
+        return data;
+      })
+      .then(data => {
+        this.props.firebase.db
+          .collection('Published')
+          .doc()
+          .set(data.data());
         return data;
       })
       .then(data => {
@@ -345,7 +352,11 @@ class Edit extends React.Component {
           >
             編集画面を非表示
           </p>
-          <Switch checked={this.state.viewOnly} defaultChecked={false} onChange={this.onToggleChange} />
+          <Switch
+            checked={this.state.viewOnly}
+            defaultChecked={false}
+            onChange={this.onToggleChange}
+          />
         </div>
         <Style>
           {!this.state.viewOnly && (

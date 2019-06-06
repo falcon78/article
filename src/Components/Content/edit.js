@@ -1,26 +1,30 @@
-//@format
+// @format
 import React from 'react';
 import { AutoComplete, Button, Input, Modal, Tag } from 'antd';
-import { withAuthorization } from '../Session/index';
-import { withFirebase } from '../Firebase/index';
 import { withRouter } from 'react-router-dom';
 import { compose } from 'recompose';
 import styled from 'styled-components';
+import moment from 'moment';
+import Switch from 'antd/es/switch';
+import { Flipper, Flipped } from 'react-flip-toolkit';
+import { withAuthorization } from '../Session/index';
+import { withFirebase } from '../Firebase/index';
 import Loading from './modules/loading';
 import * as ROUTES from '../../constants/routes';
 import MarkdownArticle from './supporters/container/organisms/markdownArticle';
 import DisplayLocation from './modules/DisplayLocation';
 import DeleteAndOrderButtons from './modules/DeleteAndOrderButtons';
-import moment from 'moment';
-import Switch from 'antd/es/switch';
-import { Flipper, Flipped } from 'react-flip-toolkit';
 
 const { TextArea } = Input;
 const uuidv4 = require('uuid/v4');
 
 class Edit extends React.Component {
-  constructor(props) {
-    super(props);
+  docref = this.firebase.db
+    .collection('Private')
+    .doc(`${this.match.params.id}`);
+
+  constructor({ firebase, match }) {
+    super(firebase, match);
     this.state = {
       image: '',
       lead: '',
@@ -53,49 +57,17 @@ class Edit extends React.Component {
     };
   }
 
-  docref = this.props.firebase.db
-    .collection('Private')
-    .doc(`${this.props.match.params.id}`);
-
-  characterValidate = char =>
-    char ? !!char.replace(/\s/g, '').match(/\S.+/gi) : false;
-
-  fetchFirebase = async () => {
-    await this.docref
-      .get()
-      .then(data => {
-        let fb_col = data.data().location.collection;
-        let fb_doc = data.data().location.document;
-        let fb_subcol = data.data().location.subcollection;
-        let fb_subdoc = data.data().location.subdocument;
-        this.setState({
-          location: {
-            collection: fb_col,
-            document: fb_doc,
-            subcollection: this.characterValidate(fb_subcol) ? fb_subcol : '',
-            subdocument: this.characterValidate(fb_subdoc) ? fb_subdoc : ''
-          },
-          title: data.data().title,
-          section: data.data().section,
-          lead: data.data().lead,
-          image: data.data().image,
-          initialLoad: false
-        });
-      })
-      .catch(error => {
-        this.setState({
-          error: 'エラーが発生しました。'
-        });
+  componentDidMount() {
+    const { title, image, lead, section } = this.state;
+    console.log(title, image, lead, section);
+    this.fetchFirebase();
+    const { innerWidth: width } = window;
+    if (width < 480) {
+      this.setState({
+        viewOnly: true
       });
-  };
-
-  handleChangeSection = (key, event) => {
-    let sectionLocal = [...this.state.section];
-    sectionLocal[event.target.name][key] = event.target.value;
-    this.setState({
-      section: sectionLocal
-    });
-  };
+    }
+  }
 
   handleChange = event => {
     this.setState({
@@ -112,9 +84,9 @@ class Edit extends React.Component {
   handleAdd = value => {
     const idKey = uuidv4();
     if (value === 'image' || value === 'colortext') {
-      this.setState({
+      this.setState(prevState => ({
         section: [
-          ...this.state.section,
+          ...prevState.section,
           {
             [value]: '',
             [value === 'image' ? 'caption' : 'color']: '',
@@ -122,33 +94,36 @@ class Edit extends React.Component {
           }
         ],
         add: ''
-      });
+      }));
     } else {
-      this.setState({
+      this.setState(prevState => ({
         section: [
-          ...this.state.section,
+          ...prevState.section,
           {
             [value]: '',
             idKey
           }
         ],
         add: ''
-      });
+      }));
       this.handleSubmit();
     }
   };
 
   handleNewAdd = () => {
     const idKey = uuidv4();
-    if (this.state.add) {
-      this.setState({
-        section: [...this.state.section, { [this.state.add]: '', idKey }],
+    const { add } = this.state;
+    if (add) {
+      this.setState(prevState => ({
+        section: [...prevState.section, { [prevState.add]: '', idKey }],
         add: ''
-      });
+      }));
     }
   };
 
   handleSubmit = () => {
+    const { title, image, lead, section } = this.state;
+    console.log(title, image, lead, section);
     this.setState({
       loading: true
     });
@@ -180,7 +155,7 @@ class Edit extends React.Component {
 
     const confirm = window.confirm('本当に公開しますか？');
     if (!confirm) return false;
-    let docref_publish = this.state.location.subdocument
+    const docref_publish = this.state.location.subdocument
       ? this.props.firebase.db
           .collection(this.state.location.collection)
           .doc(this.state.location.document)
@@ -282,9 +257,9 @@ class Edit extends React.Component {
 
   handleOrder = (direction, index) => {
     if (direction === 'up' && index !== 0) {
-      let localsection = [...this.state.section];
+      const localsection = [...this.state.section];
 
-      let selectedElement = localsection[index];
+      const selectedElement = localsection[index];
       localsection[index] = localsection[index - 1];
       localsection[index - 1] = selectedElement;
       this.setState({
@@ -295,9 +270,9 @@ class Edit extends React.Component {
       direction === 'down' &&
       index !== this.state.section.length - 1
     ) {
-      let localsection = [...this.state.section];
+      const localsection = [...this.state.section];
 
-      let selectedElement = localsection[index];
+      const selectedElement = localsection[index];
       localsection[index] = localsection[index + 1];
       localsection[index + 1] = selectedElement;
       this.setState({
@@ -309,8 +284,8 @@ class Edit extends React.Component {
 
   handleDeleteItem = index => {
     if (window.confirm('項目を削除しますか?')) {
-      let localsection = [...this.state.section];
-      let newArray = localsection.filter((content, i) => index !== i);
+      const localsection = [...this.state.section];
+      const newArray = localsection.filter((content, i) => index !== i);
       this.setState({
         section: newArray
       });
@@ -323,22 +298,56 @@ class Edit extends React.Component {
     });
   };
 
-  componentDidMount() {
-    this.fetchFirebase();
-    const { innerWidth: width } = window;
-    if (width < 480) {
-      this.setState({
-        viewOnly: true
+  handleChangeSection = (key, event) => {
+    const sectionLocal = [...this.state.section];
+    sectionLocal[event.target.name][key] = event.target.value;
+    this.setState({
+      section: sectionLocal
+    });
+  };
+
+  fetchFirebase = async () => {
+    await this.docref
+      .get()
+      .then(data => {
+        const firebaseCollection = data.data().location.collection;
+        const firebaseDocument = data.data().location.document;
+        const firebaseSubCollection = data.data().location.subcollection;
+        const firebaseSubDocument = data.data().location.subdocument;
+        this.setState({
+          location: {
+            collection: firebaseCollection,
+            document: firebaseDocument,
+            subcollection: this.characterValidate(firebaseSubCollection)
+              ? firebaseSubCollection
+              : '',
+            subdocument: this.characterValidate(firebaseSubDocument)
+              ? firebaseSubDocument
+              : ''
+          },
+          title: data.data().title,
+          section: data.data().section,
+          lead: data.data().lead,
+          image: data.data().image,
+          initialLoad: false
+        });
+      })
+      .catch(error => {
+        this.setState({
+          error: `エラーが発生しました。 : ${error.message}`
+        });
       });
-    }
-  }
+  };
+
+  characterValidate = char =>
+    char ? !!char.replace(/\s/g, '').match(/\S.+/gi) : false;
 
   render() {
     if (this.state.initialLoad) {
       return <Loading />;
     }
-    let regex = new RegExp(this.state.add);
-    let match = this.state.title_source.filter(word => word.match(regex));
+    const regex = new RegExp(this.state.add);
+    const match = this.state.title_source.filter(word => word.match(regex));
 
     return (
       <div>
@@ -422,7 +431,7 @@ class Edit extends React.Component {
               />
               <Flipper flipKey={this.state.orderChange}>
                 {this.state.section.map((content, index) => {
-                  let articleKey = Object.keys(content).filter(
+                  const articleKey = Object.keys(content).filter(
                     key => key !== 'idKey'
                   );
                   if (articleKey.length === 2 && articleKey.includes('image')) {
@@ -505,7 +514,7 @@ class Edit extends React.Component {
                 onCancel={this.handleShowModal}
                 centered
               >
-                <p>{'本当に削除しますか？'}</p>
+                <p>本当に削除しますか？</p>
                 {this.state.deleteError && <h3>this.state.deleteError</h3>}
               </Modal>
             </div>
@@ -516,9 +525,8 @@ class Edit extends React.Component {
               width: this.state.viewOnly ? '98%' : '45vw',
               top: '70px',
               right: '10px',
-              position: this.state.viewOnly ? 'static': 'fixed',
-              overflow: this.state.viewOnly ? 'visible': 'auto'
-
+              position: this.state.viewOnly ? 'static' : 'fixed',
+              overflow: this.state.viewOnly ? 'visible' : 'auto'
             }}
             className="right"
           >
@@ -584,5 +592,8 @@ const Style = styled.div`
     border-color: whitesmoke;
     border-radius: 10px;
     box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+    textarea {
+      background: #f5f5f5;
+    }
   }
 `;

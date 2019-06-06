@@ -1,11 +1,11 @@
 import { Layout, Menu } from 'antd';
-import { Link } from 'react-router-dom';
+import { Link, withRouter } from 'react-router-dom';
 import React from 'react';
+import styled from 'styled-components';
 import * as ROUTES from '../../constants/routes';
 import { AuthUserContext } from '../Session/index';
 import SignOutButton from '../SignOut/signOutButton';
-import styled from 'styled-components';
-import { withRouter } from 'react-router-dom';
+
 const { Header } = Layout;
 
 const Navigation = props => (
@@ -18,16 +18,18 @@ const Navigation = props => (
   </div>
 );
 
-const NavigationAuth = props => {
-  let regex = /\/edit\/.*/;
+const NavigationAuth = ({ location }) => {
+  const regex = /\/edit\/.*/;
   let SelectedMenu = '1';
-  let path = props.location.pathname;
-  if (path === '/') {
+  const path = location.pathname;
+  if (path === ROUTES.HOME) {
     SelectedMenu = '1';
-  } else if (path === '/new') {
+  } else if (path === ROUTES.NEW) {
     SelectedMenu = '2';
   } else if (path.match(regex)) {
     SelectedMenu = '3';
+  } else if (path === ROUTES.LOCATIONCHANGE) {
+    SelectedMenu = '4';
   }
   return (
     <Style>
@@ -48,7 +50,10 @@ const NavigationAuth = props => {
             <Link to={ROUTES.NEW}>New</Link>
           </Menu.Item>
           <Menu.Item key="3">Edit</Menu.Item>
-          <Menu.Item key="4" className="button">
+          <Menu.Item key="4">
+            <Link to={ROUTES.LOCATIONCHANGE}>非公開</Link>
+          </Menu.Item>
+          <Menu.Item key="10" className="button">
             <SignOutButton />
           </Menu.Item>
         </Menu>
@@ -82,6 +87,7 @@ const NavigationNonAuth = () => {
 export default withRouter(Navigation);
 
 const Style = styled.div`
+  z-index: 9999;
   .container {
     display: flex;
   }

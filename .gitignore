@@ -24,3 +24,7 @@ yarn-error.log*
 
 
 .idea
+.firebaserc
+*.cache
+.firebase.json
+./src/Components/Firebase/credentials.js

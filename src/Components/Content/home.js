@@ -1,46 +1,49 @@
-import React, { Component } from "react";
-import ArticleCard from "../Content/modules/ArticleCard";
-import { withFirebase } from "../Firebase/index";
-import { withAuthorization } from "../Session/index";
-import { compose } from "recompose";
+import React, { Component } from 'react';
+import ArticleCard from '../Content/modules/ArticleCard';
+import { withFirebase } from '../Firebase/index';
+import { withAuthorization } from '../Session/index';
+import { compose } from 'recompose';
+import Loading from './modules/loading';
 
-const uuidv4 = require("uuid/v4");
+const uuidv4 = require('uuid/v4');
 
 class Home extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      data: []
+      data: [],
+      initialLoad: true
     };
-    this.getfirebase = this.getfirebase.bind(this);
   }
 
-  reference = this.props.firebase.db.collection("Articles");
+  reference = this.props.firebase.db.collection('Private');
 
-  async getfirebase() {
+  getfirebase = async () => {
     let local = [];
     await this.reference
-      .orderBy("createdOn","desc").get()
+      .orderBy('createdOn', 'desc')
+      .get()
       .then(snapshot => {
         snapshot.forEach(data => {
-          local = local.concat(data)
-
+          local = local.concat(data);
         });
       })
-      .catch(err => {
-        console.log(err);
-      });
+      .catch(err => {});
     this.setState({
-      data: [...this.state.data, ...local]
+      data: local,
+      initialLoad: false
     });
-  }
+  };
   componentDidMount() {
     this.getfirebase();
   }
 
   render() {
+    if (this.state.initialLoad) {
+      return <Loading />;
+    }
     return (
-      <div style={{ display: "flex", flexWrap: "wrap" }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap' }}>
         {this.state.data.map(data => {
           return <ArticleCard key={uuidv4()} articledata={data} />;
         })}

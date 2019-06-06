@@ -18,6 +18,7 @@ const withAuth = Component => {
           : this.setState({ authUser: null });
       });
     }
+
     componentWillUnmount() {
       this.listener();
     }

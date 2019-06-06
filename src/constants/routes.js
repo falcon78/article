@@ -7,3 +7,4 @@ export const ADMIN = '/admin';
 export const PASSWORD_FORGET = '/pw-forget';
 export const EDIT = '/edit';
 export const NEW = '/new';
+export const LOCATIONCHANGE = '/locationchange';

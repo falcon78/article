@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
-import ArticleCard from '../Content/modules/ArticleCard';
+import { compose } from 'recompose';
+import ArticleCard from './modules/ArticleCard';
 import { withFirebase } from '../Firebase/index';
 import { withAuthorization } from '../Session/index';
-import { compose } from 'recompose';
 import Loading from './modules/loading';
 
 const uuidv4 = require('uuid/v4');
@@ -10,13 +10,16 @@ const uuidv4 = require('uuid/v4');
 class Home extends Component {
   constructor(props) {
     super(props);
+    this.reference = props.firebase.db.collection('Private');
     this.state = {
       data: [],
       initialLoad: true
     };
   }
 
-  reference = this.props.firebase.db.collection('Private');
+  componentDidMount() {
+    this.getfirebase();
+  }
 
   getfirebase = async () => {
     let local = [];
@@ -27,25 +30,23 @@ class Home extends Component {
         snapshot.forEach(data => {
           local = local.concat(data);
         });
-      })
-      .catch(err => {});
+      });
+
     this.setState({
       data: local,
       initialLoad: false
     });
   };
-  componentDidMount() {
-    this.getfirebase();
-  }
 
   render() {
-    if (this.state.initialLoad) {
+    const { initialLoad, data } = this.state;
+    if (initialLoad) {
       return <Loading />;
     }
     return (
       <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-        {this.state.data.map(data => {
-          return <ArticleCard key={uuidv4()} articledata={data} />;
+        {data.map(articleData => {
+          return <ArticleCard key={uuidv4()} articledata={articleData} />;
         })}
       </div>
     );

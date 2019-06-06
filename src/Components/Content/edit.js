@@ -1,26 +1,29 @@
-//@format
+// @format
 import React from 'react';
 import { AutoComplete, Button, Input, Modal, Tag } from 'antd';
-import { withAuthorization } from '../Session/index';
-import { withFirebase } from '../Firebase/index';
 import { withRouter } from 'react-router-dom';
 import { compose } from 'recompose';
 import styled from 'styled-components';
+import moment from 'moment';
+import Switch from 'antd/es/switch';
+import { Flipper, Flipped } from 'react-flip-toolkit';
+import { withAuthorization } from '../Session/index';
+import { withFirebase } from '../Firebase/index';
 import Loading from './modules/loading';
 import * as ROUTES from '../../constants/routes';
 import MarkdownArticle from './supporters/container/organisms/markdownArticle';
 import DisplayLocation from './modules/DisplayLocation';
 import DeleteAndOrderButtons from './modules/DeleteAndOrderButtons';
-import moment from 'moment';
-import Switch from 'antd/es/switch';
-import { Flipper, Flipped } from 'react-flip-toolkit';
 
 const { TextArea } = Input;
 const uuidv4 = require('uuid/v4');
 
 class Edit extends React.Component {
-  constructor(props) {
-    super(props);
+  constructor({ firebase, match, history }) {
+    super({ firebase, match });
+    this.docref = firebase.db.collection('Private').doc(`${match.params.id}`);
+    this.history = history;
+    this.firebase = firebase;
     this.state = {
       image: '',
       lead: '',
@@ -35,7 +38,7 @@ class Edit extends React.Component {
       error: '',
       add: '',
       loading: false,
-      title_source: [
+      titleSource: [
         'title',
         'text',
         'image',
@@ -53,49 +56,15 @@ class Edit extends React.Component {
     };
   }
 
-  docref = this.props.firebase.db
-    .collection('Private')
-    .doc(`${this.props.match.params.id}`);
-
-  characterValidate = char =>
-    char ? !!char.replace(/\s/g, '').match(/\S.+/gi) : false;
-
-  fetchFirebase = async () => {
-    await this.docref
-      .get()
-      .then(data => {
-        let fb_col = data.data().location.collection;
-        let fb_doc = data.data().location.document;
-        let fb_subcol = data.data().location.subcollection;
-        let fb_subdoc = data.data().location.subdocument;
-        this.setState({
-          location: {
-            collection: fb_col,
-            document: fb_doc,
-            subcollection: this.characterValidate(fb_subcol) ? fb_subcol : '',
-            subdocument: this.characterValidate(fb_subdoc) ? fb_subdoc : ''
-          },
-          title: data.data().title,
-          section: data.data().section,
-          lead: data.data().lead,
-          image: data.data().image,
-          initialLoad: false
-        });
-      })
-      .catch(error => {
-        this.setState({
-          error: 'エラーが発生しました。'
-        });
+  componentDidMount() {
+    this.fetchFirebase();
+    const { innerWidth: width } = window;
+    if (width < 480) {
+      this.setState({
+        viewOnly: true
       });
-  };
-
-  handleChangeSection = (key, event) => {
-    let sectionLocal = [...this.state.section];
-    sectionLocal[event.target.name][key] = event.target.value;
-    this.setState({
-      section: sectionLocal
-    });
-  };
+    }
+  }
 
   handleChange = event => {
     this.setState({
@@ -112,9 +81,9 @@ class Edit extends React.Component {
   handleAdd = value => {
     const idKey = uuidv4();
     if (value === 'image' || value === 'colortext') {
-      this.setState({
+      this.setState(prevState => ({
         section: [
-          ...this.state.section,
+          ...prevState.section,
           {
             [value]: '',
             [value === 'image' ? 'caption' : 'color']: '',
@@ -122,112 +91,111 @@ class Edit extends React.Component {
           }
         ],
         add: ''
-      });
+      }));
     } else {
-      this.setState({
+      this.setState(prevState => ({
         section: [
-          ...this.state.section,
+          ...prevState.section,
           {
             [value]: '',
             idKey
           }
         ],
         add: ''
-      });
+      }));
       this.handleSubmit();
     }
   };
 
   handleNewAdd = () => {
     const idKey = uuidv4();
-    if (this.state.add) {
-      this.setState({
-        section: [...this.state.section, { [this.state.add]: '', idKey }],
+    const { add } = this.state;
+    if (add) {
+      this.setState(prevState => ({
+        section: [...prevState.section, { [prevState.add]: '', idKey }],
         add: ''
-      });
+      }));
     }
   };
 
   handleSubmit = () => {
+    const { title, image, lead, section } = this.state;
     this.setState({
       loading: true
     });
     this.docref
       .update({
-        title: this.state.title,
-        image: this.state.image,
-        lead: this.state.lead,
-        section: this.state.section,
-        lastEdited: moment(new Date()).format('YYYYMMDDHHmm')
+        title,
+        image,
+        lead,
+        section,
+        lastEdited: moment(new Date()).format('YYYY-MM-DD HH:mm')
       })
       .then(() => {
         this.setState({
           loading: false
         });
       })
-      .catch(() => {
+      .catch(error => {
         this.setState({
-          error: '記事を投稿できませんでした。'
+          error: `記事を投稿できませんでした。 : ${error.message}`
         });
       });
   };
 
   handlePublish = async () => {
-    const cardRef = this.props.firebase.db
-      .collection(this.state.location.collection)
-      .doc(this.state.location.document)
-      .collection('cardData');
+    const { location } = this.state;
+    const { title, image, lead, section } = this.state;
 
     const confirm = window.confirm('本当に公開しますか？');
     if (!confirm) return false;
-    let docref_publish = this.state.location.subdocument
-      ? this.props.firebase.db
-          .collection(this.state.location.collection)
-          .doc(this.state.location.document)
-          .collection(this.state.location.subcollection)
-          .doc(this.state.location.subdocument)
-      : this.props.firebase.db
-          .collection(this.state.location.collection)
-          .doc(this.state.location.document);
+
+    const docrefPublish = location.subdocument
+      ? this.firebase.db
+          .collection(location.collection)
+          .doc(location.document)
+          .collection(location.subcollection)
+          .doc(location.subdocument)
+      : this.firebase.db.collection(location.collection).doc(location.document);
     this.setState({
       loading: true
     });
 
     this.docref
       .update({
-        title: this.state.title,
-        image: this.state.image,
-        lead: this.state.lead,
-        section: this.state.section,
+        title,
+        image,
+        lead,
+        section,
         lastEdited: moment(new Date()).format('YYYY-MM-DD HH:mm')
       })
       .then(() => {
         return this.docref.get();
       })
       .then(data => {
-        docref_publish.set(data.data());
+        docrefPublish.set(data.data());
         return data;
       })
       .then(data => {
-        this.props.firebase.db
+        this.firebase.db
           .collection('Published')
           .doc()
           .set(data.data());
         return data;
       })
       .then(data => {
-        const cardLocation = data.data().cardLocation;
-        const cardRef = this.props.firebase.db
+        const { cardLocation, id } = data.data();
+        const cardRef = this.firebase.db
           .collection(cardLocation.collection)
           .doc(cardLocation.document)
           .collection(cardLocation.subcollection)
-          .doc(cardLocation.subdocument);
+          .doc(`card_${cardLocation.subdocument}`);
         return cardRef.set({
-          cardTitle: this.state.title,
-          id: data.data().id,
-          image: this.state.image,
+          cardTitle: title,
+          id,
+          image,
           isOpenFlg: true,
-          lead: this.state.lead,
+          lead,
           to: `/${data.data().to}/${data.data().id}`
         });
       })
@@ -238,19 +206,20 @@ class Edit extends React.Component {
         this.setState({
           loading: false
         });
-        this.props.history.push(ROUTES.LANDING);
+        this.history.push(ROUTES.LANDING);
       })
       .catch(error => {
         this.setState({
           error: `エラーが発生しました。 : ${error.message}`
         });
       });
+    return true;
   };
 
   handleShowModal = () => {
-    this.setState({
-      deleteModal: !this.state.deleteModal
-    });
+    this.setState(prevState => ({
+      deleteModal: !prevState.deleteModal
+    }));
   };
 
   handleDelete = () => {
@@ -269,7 +238,7 @@ class Edit extends React.Component {
             deleteModal: false
           });
         }, 2000);
-        this.props.history.push(ROUTES.LANDING);
+        this.history.push(ROUTES.LANDING);
       })
       .catch(error => {
         this.setState({
@@ -281,23 +250,17 @@ class Edit extends React.Component {
   };
 
   handleOrder = (direction, index) => {
+    const { section: localsection } = this.state;
     if (direction === 'up' && index !== 0) {
-      let localsection = [...this.state.section];
-
-      let selectedElement = localsection[index];
+      const selectedElement = localsection[index];
       localsection[index] = localsection[index - 1];
       localsection[index - 1] = selectedElement;
       this.setState({
         section: localsection,
         orderChange: new Date().getTime()
       });
-    } else if (
-      direction === 'down' &&
-      index !== this.state.section.length - 1
-    ) {
-      let localsection = [...this.state.section];
-
-      let selectedElement = localsection[index];
+    } else if (direction === 'down' && index !== localsection.length - 1) {
+      const selectedElement = localsection[index];
       localsection[index] = localsection[index + 1];
       localsection[index + 1] = selectedElement;
       this.setState({
@@ -309,8 +272,8 @@ class Edit extends React.Component {
 
   handleDeleteItem = index => {
     if (window.confirm('項目を削除しますか?')) {
-      let localsection = [...this.state.section];
-      let newArray = localsection.filter((content, i) => index !== i);
+      const { section: localsection } = this.state;
+      const newArray = localsection.filter((content, i) => index !== i);
       this.setState({
         section: newArray
       });
@@ -323,29 +286,81 @@ class Edit extends React.Component {
     });
   };
 
-  componentDidMount() {
-    this.fetchFirebase();
-    const { innerWidth: width } = window;
-    if (width < 480) {
-      this.setState({
-        viewOnly: true
+  handleChangeSection = (key, event) => {
+    const { section: localsection } = this.state;
+    localsection[event.target.name][key] = event.target.value;
+    this.setState({
+      section: localsection
+    });
+  };
+
+  fetchFirebase = async () => {
+    await this.docref
+      .get()
+      .then(data => {
+        const firebaseCollection = data.data().location.collection;
+        const firebaseDocument = data.data().location.document;
+        const firebaseSubCollection = data.data().location.subcollection;
+        const firebaseSubDocument = data.data().location.subdocument;
+        this.setState({
+          location: {
+            collection: firebaseCollection,
+            document: firebaseDocument,
+            subcollection: this.characterValidate(firebaseSubCollection)
+              ? firebaseSubCollection
+              : '',
+            subdocument: this.characterValidate(firebaseSubDocument)
+              ? firebaseSubDocument
+              : ''
+          },
+          title: data.data().title,
+          section: data.data().section,
+          lead: data.data().lead,
+          image: data.data().image,
+          initialLoad: false
+        });
+      })
+      .catch(error => {
+        this.setState({
+          error: `エラーが発生しました。 : ${error.message}`
+        });
       });
-    }
-  }
+  };
+
+  characterValidate = char =>
+    char ? !!char.replace(/\s/g, '').match(/\S.+/gi) : false;
 
   render() {
-    if (this.state.initialLoad) {
+    const {
+      initialLoad,
+      add,
+      titleSource,
+      viewOnly,
+      location,
+      title,
+      image,
+      lead,
+      section,
+      orderChange,
+      loading,
+      error,
+      deleteError,
+      deleteModal,
+      confirmLoading
+    } = this.state;
+
+    if (initialLoad) {
       return <Loading />;
     }
-    let regex = new RegExp(this.state.add);
-    let match = this.state.title_source.filter(word => word.match(regex));
+    const regex = new RegExp(add);
+    const wordMatch = titleSource.filter(word => word.match(regex));
 
     return (
       <div>
         <div
           style={{
             display: 'flex',
-            width: this.state.viewOnly ? '100%' : '45%',
+            width: viewOnly ? '100%' : '45%',
             justifyContent: 'center'
           }}
         >
@@ -357,18 +372,18 @@ class Edit extends React.Component {
             編集画面を非表示
           </p>
           <Switch
-            checked={this.state.viewOnly}
+            checked={viewOnly}
             defaultChecked={false}
             onChange={this.onToggleChange}
           />
         </div>
         <Style>
-          {!this.state.viewOnly && (
+          {!viewOnly && (
             <div className="left">
               <div
                 style={{ display: 'flex', justifyContent: 'space-between' }}
               />
-              <DisplayLocation location={this.state.location} />
+              <DisplayLocation location={location} />
               <Tag
                 style={{
                   marginTop: '1em'
@@ -382,7 +397,7 @@ class Edit extends React.Component {
                 style={{ margin: '0 0 1em 0' }}
                 name="title"
                 onChange={this.handleChange}
-                value={this.state.title}
+                value={title}
               />
 
               <div
@@ -400,7 +415,7 @@ class Edit extends React.Component {
                 autosize={{ minRows: 2, maxRows: 100 }}
                 name="image"
                 onChange={this.handleChange}
-                value={this.state.image}
+                value={image}
               />
 
               <div
@@ -418,11 +433,11 @@ class Edit extends React.Component {
                 autosize={{ minRows: 1, maxRows: 100 }}
                 name="lead"
                 onChange={this.handleChange}
-                value={this.state.lead}
+                value={lead}
               />
-              <Flipper flipKey={this.state.orderChange}>
-                {this.state.section.map((content, index) => {
-                  let articleKey = Object.keys(content).filter(
+              <Flipper flipKey={orderChange}>
+                {section.map((content, index) => {
+                  const articleKey = Object.keys(content).filter(
                     key => key !== 'idKey'
                   );
                   if (articleKey.length === 2 && articleKey.includes('image')) {
@@ -455,7 +470,7 @@ class Edit extends React.Component {
                               autosize={{ minRows: 1, maxRows: 100 }}
                               name={index}
                               onChange={e => this.handleChangeSection(key, e)}
-                              value={this.state.section[index][key]}
+                              value={section[index][key]}
                             />
                           </div>
                         ))}
@@ -465,19 +480,19 @@ class Edit extends React.Component {
                 })}
               </Flipper>
               <AutoComplete
-                dataSource={match}
+                dataSource={wordMatch}
                 style={{ width: 200, marginTop: '1em' }}
                 onSelect={this.handleAdd}
                 onSearch={this.handleSearch}
-                value={this.state.add}
+                value={add}
                 placeholder="入力/選択"
               />
               <Button style={{ marginLeft: '1em' }} onClick={this.handleNewAdd}>
                 追加
               </Button>
               <br />
-              {this.state.loading && <Loading inline />}
-              {this.state.error && <p>{this.state.error}</p>}
+              {loading && <Loading inline />}
+              {error && <p>{error}</p>}
               <Button
                 style={{ margin: '1em 2px 5px' }}
                 onClick={this.handleSubmit}
@@ -499,35 +514,34 @@ class Edit extends React.Component {
               </Button>
               <Modal
                 title="削除"
-                visible={this.state.deleteModal}
+                visible={deleteModal}
                 onOk={this.handleDelete}
-                confirmLoading={this.state.confirmLoading}
+                confirmLoading={confirmLoading}
                 onCancel={this.handleShowModal}
                 centered
               >
-                <p>{'本当に削除しますか？'}</p>
-                {this.state.deleteError && <h3>this.state.deleteError</h3>}
+                <p>本当に削除しますか？</p>
+                {deleteError && <h3>{deleteError}</h3>}
               </Modal>
             </div>
           )}
 
           <div
             style={{
-              width: this.state.viewOnly ? '98%' : '45vw',
+              width: viewOnly ? '98%' : '45vw',
               top: '70px',
               right: '10px',
-              position: this.state.viewOnly ? 'static': 'fixed',
-              overflow: this.state.viewOnly ? 'visible': 'auto'
-
+              position: viewOnly ? 'static' : 'fixed',
+              overflow: viewOnly ? 'visible' : 'auto'
             }}
             className="right"
           >
             <MarkdownArticle
               style={{ marginTop: '1em' }}
-              section={this.state.section}
-              image={this.state.image}
-              title={this.state.title}
-              lead={this.state.lead}
+              section={section}
+              image={image}
+              title={title}
+              lead={lead}
             />
           </div>
         </Style>
@@ -584,5 +598,8 @@ const Style = styled.div`
     border-color: whitesmoke;
     border-radius: 10px;
     box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+    textarea {
+      background: #f5f5f5;
+    }
   }
 `;

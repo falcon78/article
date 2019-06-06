@@ -11,8 +11,7 @@ import DisplayLocation from './modules/DisplayLocation';
 
 const { Meta } = Card;
 
-// eslint-disable-next-line prefer-destructuring
-const Option = Select.Option;
+const { Option } = Select;
 
 function LocationChange({ firebase, history }) {
   const [location, setLocation] = useState({});
@@ -193,6 +192,7 @@ function LocationChange({ firebase, history }) {
   };
 
   const setPrivateIndex = index => {
+    // eslint-disable-line no-alert
     const confirm = window.confirm(
       `${
         publishedCollection[index].title
@@ -319,7 +319,6 @@ function LocationChange({ firebase, history }) {
             justifyContent: 'center'
           }}
         >
-          {console.log(publishedCollection)}
           {publishedCollection.length >= 1 &&
             publishedCollection.map((data, index) => (
               <div onClick={() => setPrivateIndex(index)}>

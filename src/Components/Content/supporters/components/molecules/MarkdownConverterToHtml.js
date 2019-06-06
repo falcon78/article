@@ -9,7 +9,7 @@ function MarkdownConverterToHtml({ markdown }) {
 
   return (
     <FontStyle>
-      <Markdown source={outputFinal} />
+      <Markdown escapeHtml={false} source={outputFinal} />
     </FontStyle>
   );
 }

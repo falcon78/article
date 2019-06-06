@@ -1,23 +1,21 @@
 import React from 'react';
-import ArticleView from './modules/viewArticle';
 import styled from 'styled-components';
-import { withAuthorization } from '../Session/index';
 import { compose } from 'recompose';
-import { withFirebase } from '../Firebase';
 import { withRouter } from 'react-router-dom';
-import { Input, Button } from 'antd/lib/index';
+import { Input, Button, Select } from 'antd/lib/index';
+import { withFirebase } from '../Firebase';
+import { withAuthorization } from '../Session/index';
 import Loading from './modules/loading';
-import { Select } from 'antd';
 import DisplayLocation from './modules/DisplayLocation';
 
-const Option = Select.Option;
+const { Option } = Select;
 const moment = require('moment');
 
-const uuidv4 = require('uuid/v4');
-
 class NewArticle extends React.Component {
-  constructor(props) {
-    super(props);
+  constructor({ firebase, history }) {
+    super({ firebase, history });
+    this.firebase = firebase;
+    this.history = history;
     this.INITIAL_STATE = {
       public: 'false',
       title: '',
@@ -26,7 +24,7 @@ class NewArticle extends React.Component {
       collection: '',
       document: '',
       subcollection: '',
-      subdocument: '',
+      subdocument: `article${moment(new Date()).format('YYYY-MM-DD HH:mm')}`,
       card: {
         collection: '',
         document: '',
@@ -39,10 +37,14 @@ class NewArticle extends React.Component {
         description: ''
       },
       pathlist: {},
-      id: ''
+      id: moment(new Date()).format('YYYYMMDDHHmm')
     };
     this.state = this.INITIAL_STATE;
     this.handleSubmit = this.handleSubmit.bind(this);
+  }
+
+  componentDidMount() {
+    this.getPathData();
   }
 
   handleChange = event => {
@@ -55,57 +57,59 @@ class NewArticle extends React.Component {
     char ? !!char.replace(/\s/g, '').match(/.*/gi) : false;
 
   handleSubmit = async () => {
-    let col = this.state.collection;
-    let doc = this.state.document;
-    let subcol = this.state.subcollection;
-    let subdoc = this.state.subdocument;
+    const {
+      collection,
+      document,
+      subdocument,
+      subcollection,
+      id,
+      metadata,
+      card,
+      title,
+      image,
+      lead,
+      to
+    } = this.state;
 
     if (
-      this.characterValidate(this.state.collection) &&
-      this.characterValidate(this.state.document) &&
-      this.characterValidate(this.state.subcollection) &&
-      this.characterValidate(this.state.subdocument) &&
-      this.characterValidate(this.state.metadata.description) &&
-      this.characterValidate(this.state.metadata.title) &&
-      this.characterValidate(this.state.id)
+      this.characterValidate(collection) &&
+      this.characterValidate(document) &&
+      this.characterValidate(subcollection) &&
+      this.characterValidate(subdocument) &&
+      this.characterValidate(metadata.description) &&
+      this.characterValidate(metadata.title) &&
+      this.characterValidate(id)
     ) {
-      let docref = this.props.firebase.db
-        .collection('Private')
-        .doc(subdoc ? subdoc : doc);
+      const docref = this.firebase.db.collection('Private').doc();
       this.setState({
         loading: true
       });
 
-      let today = new Date();
-      today.setHours(today.getHours() + 4);
-
       await docref
         .set({
-          title: this.state.title,
-          image: this.state.image,
-          lead: this.state.lead,
+          title,
+          image,
+          lead,
           section: [],
           createdOn: moment(new Date()).format('YYYY-MM-DD HH:mm'),
           lastEdited: '',
           location: {
-            collection: col ? col : '',
-            document: doc ? doc : '',
-            subcollection: subcol ? subcol : '',
-            subdocument: subdoc ? subdoc : ''
+            collection: collection || '',
+            document: document || '',
+            subcollection: subcollection || '',
+            subdocument: subdocument || ''
           },
           cardLocation: {
-            collection: this.state.card.collection,
-            document: this.state.card.document,
-            subcollection: this.state.card.subcollection,
-            subdocument: this.state.subdocument
+            collection: card.collection,
+            document: card.document,
+            subcollection: card.subcollection,
+            subdocument
           },
-
           NEWCONTENTTYPE: true,
-          id: parseInt(this.state.id, 10),
-          //id: parseInt(moment(new Date()).format('YYYYMMDDHHmm'), 10),
-          to: this.state.to,
+          id: parseInt(id, 10),
+          to,
           isOpenFlg: true,
-          metadata: this.state.metadata
+          metadata
         })
         .then(() => {
           this.setState(this.INITIAL_STATE);
@@ -116,7 +120,7 @@ class NewArticle extends React.Component {
             this.setState({
               loading: false
             });
-            this.props.history.push('/');
+            this.history.push('/');
           }, 1000);
         })
         .catch(error => {
@@ -136,9 +140,10 @@ class NewArticle extends React.Component {
   };
 
   handleMetadata = event => {
+    const { metadata } = this.state;
     this.setState({
       metadata: {
-        ...this.state.metadata,
+        ...metadata,
         [event.target.name]: event.target.value
       }
     });
@@ -166,7 +171,7 @@ class NewArticle extends React.Component {
   };
 
   getPathData = () => {
-    const docref = this.props.firebase.db
+    const docref = this.firebase.db
       .collection('ArticlePathList')
       .doc('pathlist');
     docref
@@ -181,14 +186,21 @@ class NewArticle extends React.Component {
       .finally(() => {});
   };
 
-  componentDidMount() {
-    this.getPathData();
-    console.log(this.characterValidate(" "))
-  }
-
   render() {
-    const keys = Object.keys(this.state.pathlist);
-    const pathlist = this.state.pathlist;
+    const {
+      pathlist,
+      location,
+      card,
+      subdocument,
+      id,
+      title,
+      image,
+      lead,
+      metadata,
+      error,
+      loading
+    } = this.state;
+    const keys = Object.keys(pathlist);
 
     return (
       <Style>
@@ -197,152 +209,149 @@ class NewArticle extends React.Component {
             {keys.map(key => (
               <Option value={pathlist[key]}>{key}</Option>
             ))}
-            {/*<Option value="jack">Jack</Option>*/}
           </Select>
         </div>
 
         <div className="pathdiv">
-          {this.state.location && (
+          {location && (
             <React.Fragment>
               <span className="label">ドキュメントパス</span>
-              <DisplayLocation location={this.state.location} />
+              <DisplayLocation location={location} />
             </React.Fragment>
           )}
         </div>
 
         <div className="pathdiv">
-          {this.state.card.document && (
+          {card.document && (
             <React.Fragment>
               <span className="label">カードパス</span>
-              <DisplayLocation location={this.state.card} />
+              <DisplayLocation location={card} />
             </React.Fragment>
           )}
         </div>
 
-        <label
+        <p
           style={{
             marginTop: '0.5em',
             marginLeft: '1em'
           }}
         >
-          サブドキュメント (Subdocument)
-        </label>
+          ドキュメント名 (なんでもOK)
+        </p>
 
         <Input
           required
           style={{ margin: '0.5em' }}
           placeholder="subdocument"
-          value={this.state.subdocument}
+          value={subdocument}
           name="subdocument"
           onChange={this.handleChange}
         />
-        <label
+        <p
           style={{
             marginLeft: '1em',
             marginTop: '0.5em'
           }}
         >
-          記事 ID
-        </label>
+          記事 ID (半角数字)
+        </p>
         <Input
           onChange={this.handleChange}
           name="id"
-          value={this.state.id}
+          value={id}
           style={{ margin: '0.5em' }}
           placeholder="半角数字 ID (ex. 20180512) "
           required
         />
-        <label
+        <p
           style={{
             marginTop: '0.5em',
             marginLeft: '1em'
           }}
         >
           タイトル
-        </label>
+        </p>
         <Input
           required
           placeholder="タイトル"
           style={{ margin: '0.5em' }}
-          value={this.state.title}
+          value={title}
           onChange={this.handleChange}
           name="title"
         />
-        <label
+        <p
           style={{
             marginLeft: '1em',
             marginTop: '0.5em'
           }}
         >
           プレビュー画像
-        </label>
+        </p>
         <Input
           onChange={this.handleChange}
           style={{ margin: '0.5em' }}
           name="image"
-          value={this.state.image}
+          value={image}
           placeholder="プレビュー画像"
           required
         />
-        <label
+        <p
           style={{
             marginLeft: '1em',
             marginTop: '0.5em'
           }}
         >
           プレビューリード
-        </label>
+        </p>
         <Input
           onChange={this.handleChange}
           name="lead"
-          value={this.state.lead}
+          value={lead}
           style={{ margin: '0.5em' }}
           placeholder="プレビューテキスト　リード"
           required
         />
-        <label
+        <p
           style={{
             marginLeft: '1em',
             marginTop: '0.5em'
           }}
         >
           メタデータ　タイトル
-        </label>
+        </p>
         <Input
           onChange={this.handleMetadata}
           name="title"
-          value={this.state.metadata.title}
+          value={metadata.title}
           style={{ margin: '0.5em' }}
           placeholder="メタデータ タイトル"
           required
         />
-        <label
+        <p
           style={{
             marginLeft: '1em',
             marginTop: '0.5em'
           }}
         >
           メタデータ詳細
-        </label>
+        </p>
         <Input
           onChange={this.handleMetadata}
           name="description"
-          value={this.state.metadata.description}
+          value={metadata.description}
           style={{ margin: '0.5em' }}
           placeholder="メタデータ  詳細 "
           required
         />
-        {this.state.error && (
-          <p style={{ margin: '0.5em 0' }}>{this.state.error}</p>
-        )}
+        {error && <p style={{ margin: '0.5em 0' }}>{error}</p>}
         <Button
           style={{ margin: '2em 0 2em' }}
-          loading={this.state.loading}
+          loading={loading}
           onClick={this.handleSubmit}
         >
           追加
         </Button>
-        {this.state.loading && <Loading inline />}
+        {loading && <Loading inline />}
       </Style>
     );
   }
@@ -362,6 +371,9 @@ const Style = styled.div`
 
   button {
     width: 100%;
+  }
+  p {
+    margin-bottom: 2px;
   }
   .pathdiv {
     display: flex;

@@ -20,8 +20,9 @@ const uuidv4 = require('uuid/v4');
 
 class Edit extends React.Component {
   constructor({ firebase, match, history }) {
-    super({ firebase, match });
+    super({ firebase, match, history });
     this.docref = firebase.db.collection('Private').doc(`${match.params.id}`);
+    const storageRef = firebase.storage;
     this.history = history;
     this.firebase = firebase;
     this.state = {
@@ -103,8 +104,8 @@ class Edit extends React.Component {
         ],
         add: ''
       }));
-      this.handleSubmit();
     }
+    this.handleSubmit();
   };
 
   handleNewAdd = () => {
@@ -116,9 +117,11 @@ class Edit extends React.Component {
         add: ''
       }));
     }
+    this.handleSubmit();
   };
 
   handleSubmit = () => {
+    if (this.state.loading) return false;
     const { title, image, lead, section } = this.state;
     this.setState({
       loading: true
@@ -141,6 +144,7 @@ class Edit extends React.Component {
           error: `記事を投稿できませんでした。 : ${error.message}`
         });
       });
+    return true;
   };
 
   handlePublish = async () => {
@@ -238,6 +242,7 @@ class Edit extends React.Component {
             deleteModal: false
           });
         }, 2000);
+        this.handleSubmit();
         this.history.push(ROUTES.LANDING);
       })
       .catch(error => {
@@ -247,6 +252,7 @@ class Edit extends React.Component {
         });
         throw error;
       });
+    this.handleSubmit();
   };
 
   handleOrder = (direction, index) => {
@@ -259,6 +265,7 @@ class Edit extends React.Component {
         section: localsection,
         orderChange: new Date().getTime()
       });
+      this.handleSubmit();
     } else if (direction === 'down' && index !== localsection.length - 1) {
       const selectedElement = localsection[index];
       localsection[index] = localsection[index + 1];
@@ -267,6 +274,7 @@ class Edit extends React.Component {
         section: localsection,
         orderChange: new Date().getTime()
       });
+      this.handleSubmit();
     }
   };
 
@@ -277,6 +285,9 @@ class Edit extends React.Component {
       this.setState({
         section: newArray
       });
+      setTimeout(() => {
+        this.handleSubmit();
+      }, 500);
     }
   };
 
@@ -284,6 +295,7 @@ class Edit extends React.Component {
     this.setState({
       viewOnly: checked
     });
+    this.handleSubmit();
   };
 
   handleChangeSection = (key, event) => {
@@ -325,6 +337,29 @@ class Edit extends React.Component {
           error: `エラーが発生しました。 : ${error.message}`
         });
       });
+  };
+
+  handleImage = async ({ target: { files } }, index) => {
+    if (files[0].name) {
+      const ref = await this.firebase.storage().ref(`images/${files[0].name}`);
+      ref
+        .put(files[0])
+        .then(snapshot => {
+          snapshot.ref.getDownloadURL().then(url => {
+            const { section: localsection } = this.state;
+            localsection[index].image = url;
+            this.setState({
+              section: localsection
+            });
+            this.handleSubmit();
+          });
+        })
+        .catch(err => {
+          this.setState({
+            error: `(エラー)画像を投稿できませんでした。 Error: ${err.message}`
+          });
+        });
+    }
   };
 
   characterValidate = char =>
@@ -407,7 +442,7 @@ class Edit extends React.Component {
                   justifyContent: 'space-between'
                 }}
               >
-                <Tag color="red">メイン画像</Tag>
+                <Tag color="purple">メイン画像</Tag>
               </div>
               <TextArea
                 spellcheck="false"
@@ -460,20 +495,51 @@ class Edit extends React.Component {
                             index={index}
                           />
                         </div>
-                        {articleKey.map((key, keyIndex) => (
-                          <div>
-                            <Tag color="red">{key}</Tag>
-                            <TextArea
-                              spellCheck={false}
-                              key={keyIndex}
-                              style={{ margin: '0.5em 0', marginTop: '2px' }}
-                              autosize={{ minRows: 1, maxRows: 100 }}
-                              name={index}
-                              onChange={e => this.handleChangeSection(key, e)}
-                              value={section[index][key]}
-                            />
-                          </div>
-                        ))}
+                        {articleKey.map((key, keyIndex) =>
+                          key === 'image' ? (
+                            <div>
+                              <div>
+                                <Tag color="red">{key}</Tag>
+                                <Input
+                                  style={{
+                                    margin: '10px 0'
+                                  }}
+                                  type="file"
+                                  name="file"
+                                  onChange={event =>
+                                    this.handleImage(event, index)
+                                  }
+                                />
+                              </div>
+
+                              <TextArea
+                                spellCheck={false}
+                                key={keyIndex}
+                                style={{ margin: '0.5em 0', marginTop: '2px' }}
+                                autosize={{ minRows: 1, maxRows: 1 }}
+                                name={index}
+                                onChange={e => this.handleChangeSection(key, e)}
+                                value={section[index][key]}
+                              />
+                            </div>
+                          ) : (
+                            <div>
+                              <Tag color="red">{key}</Tag>
+                              <TextArea
+                                spellCheck={false}
+                                key={keyIndex}
+                                style={{ margin: '0.5em 0', marginTop: '2px' }}
+                                autosize={{
+                                  minRows: 1,
+                                  maxRows: 100
+                                }}
+                                name={index}
+                                onChange={e => this.handleChangeSection(key, e)}
+                                value={section[index][key]}
+                              />
+                            </div>
+                          )
+                        )}
                       </div>
                     </Flipped>
                   );
@@ -599,7 +665,7 @@ const Style = styled.div`
     border-radius: 10px;
     box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
     textarea {
-      background: #f5f5f5;
+      background: #eae8e8;
     }
   }
 `;

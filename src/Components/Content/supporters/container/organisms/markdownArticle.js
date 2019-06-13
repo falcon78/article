@@ -45,7 +45,7 @@ const MarkdownArticle = props => {
         <ArticleTitle title={section.title} key={section.idKey} />
       );
     }
-    if (section.image && section.caption) {
+    if (section.image) {
       articleElement = articleElement.concat(
         <MarginBottom>
           <ImageCaption
@@ -95,15 +95,13 @@ const MarkdownArticle = props => {
 export default MarkdownArticle;
 
 const Style = styled.div`
-  @import url('https://fonts.googleapis.com/css?family=Noto+Sans+JP&display=swap');
-  font-family: 'Noto Sans JP', sans-serif;
+ 
   .margin {
     margin: 1em;
   }
   padding: 10px;
   border-color: whitesmoke;
   border-style: solid;
-  
 `;
 
 const MarginBottom = styled.div`

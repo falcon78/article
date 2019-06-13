@@ -21,29 +21,36 @@ import locationChange from '../Content/LocationChange';
 
 const App = () => {
   return (
-    <Router>
-      <div>
-        <Navigation />
-        <TopPadding>
-          <Switch>
-            <Route exact path={ROUTES.LANDING} component={Home} />
-            <Route exact path={ROUTES.SIGN_IN} component={SignInPage} />
-            <Route exact path={ROUTES.NEW} component={New} />
-            <Route exact path={`${ROUTES.EDIT}/:id`} component={Edit} />
-            <Route
-              exact
-              path={ROUTES.LOCATIONCHANGE}
-              component={locationChange}
-            />
-            <Route component={NotFound} />
-          </Switch>
-        </TopPadding>
-      </div>
-    </Router>
+    <Style>
+      <Router>
+        <div>
+          <Navigation />
+          <TopPadding>
+            <Switch>
+              <Route exact path={ROUTES.LANDING} component={Home} />
+              <Route exact path={ROUTES.SIGN_IN} component={SignInPage} />
+              <Route exact path={ROUTES.NEW} component={New} />
+              <Route exact path={`${ROUTES.EDIT}/:id`} component={Edit} />
+              <Route
+                exact
+                path={ROUTES.LOCATIONCHANGE}
+                component={locationChange}
+              />
+              <Route component={NotFound} />
+            </Switch>
+          </TopPadding>
+        </div>
+      </Router>
+    </Style>
   );
 };
 
 export default withAuth(App);
+
+const Style = styled.div`
+  @import url('https://fonts.googleapis.com/css?family=Noto+Sans+JP&display=swap');
+  font-family: 'Noto Sans JP', sans-serif;
+`;
 
 const TopPadding = styled.div`
   padding: 6em 1em 0;

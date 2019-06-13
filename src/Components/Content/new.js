@@ -24,7 +24,7 @@ class NewArticle extends React.Component {
       collection: '',
       document: '',
       subcollection: '',
-      subdocument: `article${moment(new Date()).format('YYYY-MM-DD HH:mm')}`,
+      subdocument: `article${moment(new Date()).format('YYYY-MM-DD-HH:mm')}`,
       card: {
         collection: '',
         document: '',
@@ -186,6 +186,26 @@ class NewArticle extends React.Component {
       .finally(() => {});
   };
 
+  handleImage = ({ target: { files } }) => {
+    if (files[0].name) {
+      const ref = this.firebase.storage().ref(`images/${files[0].name}`);
+      ref
+        .put(files[0])
+        .then(snapshot => {
+          snapshot.ref.getDownloadURL().then(url => {
+            this.setState({
+              image: url
+            });
+          });
+        })
+        .catch(err => {
+          this.setState({
+            error: `(エラー)画像を投稿できませんでした。 Error: ${err.message}`
+          });
+        });
+    }
+  };
+
   render() {
     const {
       pathlist,
@@ -230,124 +250,155 @@ class NewArticle extends React.Component {
           )}
         </div>
 
-        <p
-          style={{
-            marginTop: '0.5em',
-            marginLeft: '1em'
-          }}
-        >
-          ドキュメント名 (なんでもOK)
-        </p>
+        <div className="wrapper">
+          <p
+            style={{
+              marginTop: '0.5em',
+              marginLeft: '1em'
+            }}
+          >
+            ドキュメント名 (なんでもOK)
+          </p>
 
-        <Input
-          required
-          style={{ margin: '0.5em' }}
-          placeholder="subdocument"
-          value={subdocument}
-          name="subdocument"
-          onChange={this.handleChange}
-        />
-        <p
-          style={{
-            marginLeft: '1em',
-            marginTop: '0.5em'
-          }}
-        >
-          記事 ID (半角数字)
-        </p>
-        <Input
-          onChange={this.handleChange}
-          name="id"
-          value={id}
-          style={{ margin: '0.5em' }}
-          placeholder="半角数字 ID (ex. 20180512) "
-          required
-        />
-        <p
-          style={{
-            marginTop: '0.5em',
-            marginLeft: '1em'
-          }}
-        >
-          タイトル
-        </p>
-        <Input
-          required
-          placeholder="タイトル"
-          style={{ margin: '0.5em' }}
-          value={title}
-          onChange={this.handleChange}
-          name="title"
-        />
-        <p
-          style={{
-            marginLeft: '1em',
-            marginTop: '0.5em'
-          }}
-        >
-          プレビュー画像
-        </p>
-        <Input
-          onChange={this.handleChange}
-          style={{ margin: '0.5em' }}
-          name="image"
-          value={image}
-          placeholder="プレビュー画像"
-          required
-        />
-        <p
-          style={{
-            marginLeft: '1em',
-            marginTop: '0.5em'
-          }}
-        >
-          プレビューリード
-        </p>
-        <Input
-          onChange={this.handleChange}
-          name="lead"
-          value={lead}
-          style={{ margin: '0.5em' }}
-          placeholder="プレビューテキスト　リード"
-          required
-        />
-        <p
-          style={{
-            marginLeft: '1em',
-            marginTop: '0.5em'
-          }}
-        >
-          メタデータ　タイトル
-        </p>
-        <Input
-          onChange={this.handleMetadata}
-          name="title"
-          value={metadata.title}
-          style={{ margin: '0.5em' }}
-          placeholder="メタデータ タイトル"
-          required
-        />
-        <p
-          style={{
-            marginLeft: '1em',
-            marginTop: '0.5em'
-          }}
-        >
-          メタデータ詳細
-        </p>
-        <Input
-          onChange={this.handleMetadata}
-          name="description"
-          value={metadata.description}
-          style={{ margin: '0.5em' }}
-          placeholder="メタデータ  詳細 "
-          required
-        />
+          <Input
+            required
+            style={{ margin: '0.5em' }}
+            placeholder="subdocument"
+            value={subdocument}
+            name="subdocument"
+            onChange={this.handleChange}
+          />
+        </div>
+
+        <div className="wrapper">
+          <p
+            style={{
+              marginLeft: '1em',
+              marginTop: '0.5em'
+            }}
+          >
+            記事 ID (半角数字)
+          </p>
+          <Input
+            onChange={this.handleChange}
+            name="id"
+            value={id}
+            style={{ margin: '0.5em' }}
+            placeholder="半角数字 ID (ex. 20180512) "
+            required
+          />
+        </div>
+
+        <div className="wrapper">
+          <p
+            style={{
+              marginTop: '0.5em',
+              marginLeft: '1em'
+            }}
+          >
+            タイトル
+          </p>
+          <Input
+            required
+            placeholder="タイトル"
+            style={{ margin: '0.5em' }}
+            value={title}
+            onChange={this.handleChange}
+            name="title"
+          />
+        </div>
+
+        <div className="wrapper">
+          <p
+            style={{
+              marginLeft: '1em',
+              marginTop: '0.5em'
+            }}
+          >
+            プレビュー画像
+          </p>
+          <Input
+            style={{
+              margin: '10px 0.5em 0 0.5em'
+            }}
+            type="file"
+            name="file"
+            onChange={this.handleImage}
+          />
+
+          <Input
+            onChange={this.handleChange}
+            style={{ margin: '0 0.5em 0.5em 0.5em' }}
+            name="image"
+            value={image}
+            placeholder="プレビュー画像"
+            required
+          />
+        </div>
+
+        <div className="wrapper">
+          <p
+            style={{
+              marginLeft: '1em',
+              marginTop: '0.5em'
+            }}
+          >
+            プレビューリード
+          </p>
+          <Input
+            onChange={this.handleChange}
+            name="lead"
+            value={lead}
+            style={{ margin: '0.5em' }}
+            placeholder="プレビューテキスト　リード"
+            required
+          />
+        </div>
+
+        <div className="wrapper">
+          <p
+            style={{
+              marginLeft: '1em',
+              marginTop: '0.5em'
+            }}
+          >
+            メタデータ　タイトル
+          </p>
+          <Input
+            onChange={this.handleMetadata}
+            name="title"
+            value={metadata.title}
+            style={{ margin: '0.5em' }}
+            placeholder="メタデータ タイトル"
+            required
+          />
+        </div>
+
+        <div className="wrapper">
+          <p
+            style={{
+              marginLeft: '1em',
+              marginTop: '0.5em'
+            }}
+          >
+            メタデータ詳細
+          </p>
+          <Input
+            onChange={this.handleMetadata}
+            name="description"
+            value={metadata.description}
+            style={{ margin: '0.5em' }}
+            placeholder="メタデータ  詳細 "
+            required
+          />
+        </div>
+
         {error && <p style={{ margin: '0.5em 0' }}>{error}</p>}
         <Button
-          style={{ margin: '2em 0 2em' }}
+          style={{ margin: '2em 0 2em', width: '80vw' }}
           loading={loading}
           onClick={this.handleSubmit}
+          type='primary'
         >
           追加
         </Button>
@@ -368,6 +419,7 @@ export default compose(
 const Style = styled.div`
   display: flex;
   flex-direction: column;
+  align-items: center;
 
   button {
     width: 100%;
@@ -380,6 +432,7 @@ const Style = styled.div`
     flex-wrap: wrap;
     width: 100%;
     justify-content: center;
+    margin-bottom: 10px;
     input {
       width: 22vw;
     }
@@ -393,5 +446,18 @@ const Style = styled.div`
   .label {
     margin-top: 5px;
     margin-right: 1em;
+  }
+  .wrapper {
+    width: 80vw;
+    padding: 0 1em;
+    background: #f5f5f5;
+    margin-bottom: 14px;
+    border-color: whitesmoke;
+    border-radius: 10px;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+    textarea,
+    input {
+      background: #eae8e8 
+    }
   }
 `;

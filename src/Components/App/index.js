@@ -12,7 +12,7 @@ import { withAuth } from '../Session/index';
 import Home from '../Content/home';
 import NotFound from '../notfound';
 import Edit from '../Content/edit';
-import locationChange from '../Content/LocationChange';
+import UnPublish from '../Content/unPublish';
 
 // import PasswordForgetPage from '../PasswordForget';
 // import HomePage from '../Home';
@@ -34,7 +34,7 @@ const App = () => {
               <Route
                 exact
                 path={ROUTES.LOCATIONCHANGE}
-                component={locationChange}
+                component={UnPublish}
               />
               <Route component={NotFound} />
             </Switch>

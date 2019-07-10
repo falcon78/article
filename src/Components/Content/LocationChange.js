@@ -78,45 +78,45 @@ function LocationChange({ firebase, history }) {
     return false;
   };
 
-  const fetchArticle = () => {
-    setLoading(true);
-    if (validate()) {
-      const articleRef = firebase.db
-        .collection(location.collection)
-        .doc(location.document)
-        .collection(location.subcollection)
-        .where('title', '==', title);
-      articleRef.get().then(ref => {
-        if (ref.empty) {
-          setLoading(false);
-          setError('データが存在しません。');
-          return false;
-        }
-        if (ref.size <= 1) {
-          ref.forEach(doc => {
-            setSearchArticle({
-              ...setSearchArticle,
-              subDocument: doc.data().location.subdocument,
-              title: doc.data().title,
-              image: doc.data().image,
-              fullData: doc.data()
-            });
-            // setArticleTitle(doc.data().title);
-            // setArticle(doc.id);
-            setLoading(false);
-            setPublishedDocument(doc.data().published);
-          });
-        } else {
-          setLoading(false);
-          setError('複数のデータが存在しす。');
-        }
-        return true;
-      });
-    } else {
-      setLoading(false);
-      setError('入力されていない項目があります。');
-    }
-  };
+  // const fetchArticle = () => {
+  //   setLoading(true);
+  //   if (validate()) {
+  //     const articleRef = firebase.db
+  //       .collection(location.collection)
+  //       .doc(location.document)
+  //       .collection(location.subcollection)
+  //       .where('title', '==', title);
+  //     articleRef.get().then(ref => {
+  //       if (ref.empty) {
+  //         setLoading(false);
+  //         setError('データが存在しません。');
+  //         return false;
+  //       }
+  //       if (ref.size <= 1) {
+  //         ref.forEach(doc => {
+  //           setSearchArticle({
+  //             ...setSearchArticle,
+  //             subDocument: doc.data().location.subdocument,
+  //             title: doc.data().title,
+  //             image: doc.data().image,
+  //             fullData: doc.data()
+  //           });
+  //           // setArticleTitle(doc.data().title);
+  //           // setArticle(doc.id);
+  //           setLoading(false);
+  //           setPublishedDocument(doc.data().published);
+  //         });
+  //       } else {
+  //         setLoading(false);
+  //         setError('複数のデータが存在しす。');
+  //       }
+  //       return true;
+  //     });
+  //   } else {
+  //     setLoading(false);
+  //     setError('入力されていない項目があります。');
+  //   }
+  // };
 
   const fetchPublishedCollection = () => {
     setLoading(true);
@@ -268,60 +268,14 @@ function LocationChange({ firebase, history }) {
 
   return (
     <Style>
-      <div className="select">
-        <Select style={{ width: '300px' }} onChange={handleSelect}>
-          {Object.keys(path).map(key => (
-            <Option value={key}>{key}</Option>
-          ))}
-        </Select>
-      </div>
-      <div className="pathdiv">
-        {location.document && (
-          <React.Fragment>
-            <p className="label">ドキュメントパス</p>
-            <DisplayLocation location={location} />
-          </React.Fragment>
-        )}
-      </div>
 
-      <div className="pathdiv">
-        {cardPath.document && (
-          <React.Fragment>
-            <p className="label">カードパス</p>
-            <DisplayLocation location={cardPath} />
-          </React.Fragment>
-        )}
-      </div>
 
       <div>
         <p>タイトルを入力</p>
         <Input placeholder="タイトル" value={title} onChange={handleChange} />
       </div>
-      <Button onClick={fetchArticle}>確認</Button>
-      {searchArticle.title && (
-        <div className="title">
-          <span role="img" aria-label="smile emoji">
-            😃{searchArticle.title}
-          </span>
-        </div>
-      )}
-      {searchArticle.subDocument && (
-        <div className="title">
-          <span role="img" aria-label="smile emoji">
-            😃{searchArticle.subDocument}
-          </span>
-        </div>
-      )}
-      {searchArticle.image && (
-        <img
-          style={{
-            width: '300px',
-            height: 'auto'
-          }}
-          src={searchArticle.image}
-          alt="articleImage"
-        />
-      )}
+
+
       <Button className="last" type="danger" onClick={setPrivate}>
         非公開
       </Button>

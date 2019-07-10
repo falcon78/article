@@ -1,0 +1,31 @@
+[debug] [2019-07-08T04:30:06.915Z] ----------------------------------------------------------------------
+[debug] [2019-07-08T04:30:07.009Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\KHATRISUJAN\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy
+[debug] [2019-07-08T04:30:07.009Z] CLI Version:   6.8.0
+[debug] [2019-07-08T04:30:07.009Z] Platform:      win32
+[debug] [2019-07-08T04:30:07.009Z] Node Version:  v10.15.3
+[debug] [2019-07-08T04:30:07.014Z] Time:          Mon Jul 08 2019 13:30:07 GMT+0900 (GMT+09:00)
+[debug] [2019-07-08T04:30:07.014Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2019-07-08T04:30:07.116Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2019-07-08T04:30:07.118Z] > authorizing via signed-in user
+[debug] [2019-07-08T04:30:07.118Z] [iam] checking project autho-ce94e for permissions ["firebase.projects.get","firebasehosting.sites.update"]
+[debug] [2019-07-08T04:30:07.121Z] > refreshing access token with scopes: ["email","https://www.googleapis.com/auth/cloud-platform","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","openid"]
+[debug] [2019-07-08T04:30:07.122Z] >>> HTTP REQUEST POST https://www.googleapis.com/oauth2/v3/token  
+ <request body omitted>
+[debug] [2019-07-08T04:30:07.456Z] <<< HTTP RESPONSE 200
+[debug] [2019-07-08T04:30:07.467Z] >>> HTTP REQUEST POST https://cloudresourcemanager.googleapis.com/v1/projects/autho-ce94e:testIamPermissions  
+
+[debug] [2019-07-08T04:30:08.203Z] <<< HTTP RESPONSE 200
+[debug] [2019-07-08T04:30:08.205Z] >>> HTTP REQUEST GET https://firebase.googleapis.com/v1beta1/projects/autho-ce94e  
+ 
+[debug] [2019-07-08T04:30:08.901Z] <<< HTTP RESPONSE 200
+[info] 
+[info] === Deploying to 'autho-ce94e'...
+[info] 
+[info] i  deploying hosting
+[debug] [2019-07-08T04:30:09.728Z] >>> HTTP REQUEST POST https://firebasehosting.googleapis.com/v1beta1/sites/autho-ce94e/versions  
+
+[debug] [2019-07-08T04:30:14.328Z] <<< HTTP RESPONSE 200
+[info] i  hosting[autho-ce94e]: beginning deploy...
+[info] i  hosting[autho-ce94e]: found 16 files in build
+[debug] [2019-07-08T04:30:14.365Z] [hosting] hash cache [YnVpbGQ] load error: lines is not defined

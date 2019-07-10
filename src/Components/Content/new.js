@@ -105,7 +105,7 @@ class NewArticle extends React.Component {
             collection: card.collection,
             document: card.document,
             subcollection: card.subcollection,
-            subdocument
+            subdocument: `card_${subdocument}`
           },
           NEWCONTENTTYPE: true,
           id: parseInt(id, 10),

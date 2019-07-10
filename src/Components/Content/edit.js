@@ -195,7 +195,7 @@ class Edit extends React.Component {
           .collection(cardLocation.collection)
           .doc(cardLocation.document)
           .collection(cardLocation.subcollection)
-          .doc(`card_${cardLocation.subdocument}`);
+          .doc(cardLocation.subdocument);
         return cardRef.set({
           cardTitle: title,
           id,

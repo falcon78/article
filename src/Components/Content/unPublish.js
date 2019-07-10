@@ -28,6 +28,8 @@ function UnPublish({ firebase, history }) {
     const localCollection = [];
     firebase.db
       .collection('Published')
+      .orderBy('lastEdited', 'desc')
+      .limit(10)
       .get()
       .then(collRef => {
         if (collRef.empty)
@@ -42,7 +44,7 @@ function UnPublish({ firebase, history }) {
             cardLocation: fetchedData.cardLocation,
             title: fetchedData.title,
             image: fetchedData.image,
-            publishedDocumentId: data.published
+            publishedDocumentId: fetchedData.published
           });
           setState({
             ...state,
@@ -65,28 +67,31 @@ function UnPublish({ firebase, history }) {
   };
 
   const searchArticles = async () => {
+    if (!state.input) return false;
+
     const data = await axios.get(
       `https://asia-northeast1-autho-ce94e.cloudfunctions.net/api/searchPublished/${
         state.input
       }`
     );
-    console.log(data);
-
+    setSearchResults(data.data);
+    return true;
   };
 
   const setPrivate = document => {
+    console.log(document);
     const confirmation = window.confirm('本当に非公開にしますか?');
     if (!confirmation) return false;
     const articleRef = firebase.db
       .collection(document.location.collection)
       .doc(document.location.document)
       .collection(document.location.subcollection)
-      .doc(document.location.subDocument);
+      .doc(document.location.subdocument);
     const cardRef = firebase.db
       .collection(document.cardLocation.collection)
       .doc(document.cardLocation.document)
       .collection(document.cardLocation.subcollection)
-      .doc(document.cardLocation.subDocument);
+      .doc(document.cardLocation.subdocument);
     articleRef
       .get()
       .then(data => {
@@ -111,7 +116,7 @@ function UnPublish({ firebase, history }) {
       .then(() => {
         return firebase.db
           .collection('Published')
-          .doc(document.publishedDocument)
+          .doc(document.publishedDocumentId)
           .delete();
       })
       .then(() => {
@@ -131,6 +136,7 @@ function UnPublish({ firebase, history }) {
         });
         throw fetchError;
       });
+    return true;
   };
 
   useEffect(() => {
@@ -147,12 +153,23 @@ function UnPublish({ firebase, history }) {
         />
         <Button onClick={searchArticles}>検索</Button>
       </div>
+      {searchResults && (
+        <div className="cardGallery">
+          <h3>検索結果</h3>
+          {searchResults.map(doc => (
+            <ClickableCard clickAction={setPrivate} document={doc} />
+          ))}
+        </div>
+      )}
 
-      <div>
-        {fetchedResults.map(doc => (
-          <ClickableCard clickAction={setPrivate} document={doc} />
-        ))}
-      </div>
+      {fetchedResults && (
+        <div className="cardGallery">
+          <h3>公開済み</h3>
+          {fetchedResults.map(doc => (
+            <ClickableCard clickAction={setPrivate} document={doc} />
+          ))}
+        </div>
+      )}
     </Style>
   );
 }
@@ -178,6 +195,17 @@ const Style = styled.div`
   .searchBar {
     display: flex;
     width: 40vw;
+  }
+  h3 {
+    margin-top: 3em;
+    width: 100vw;
+    text-align: center;
+  }
+  .cardGallery{
+    width: 80vw;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 `;
 

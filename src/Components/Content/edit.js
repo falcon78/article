@@ -22,7 +22,6 @@ class Edit extends React.Component {
   constructor({ firebase, match, history }) {
     super({ firebase, match, history });
     this.docref = firebase.db.collection('Private').doc(`${match.params.id}`);
-    const storageRef = firebase.storage;
     this.history = history;
     this.firebase = firebase;
     this.state = {
@@ -67,6 +66,33 @@ class Edit extends React.Component {
     }
   }
 
+  handleSubmit = () => {
+    const { loading, title, image, lead, section } = this.state;
+    if (loading) return false;
+    this.setState({
+      loading: true
+    });
+    this.docref
+      .update({
+        title,
+        image,
+        lead,
+        section,
+        lastEdited: moment(new Date()).format('YYYY-MM-DD HH:mm')
+      })
+      .then(() => {
+        this.setState({
+          loading: false
+        });
+      })
+      .catch(error => {
+        this.setState({
+          error: `記事を投稿できませんでした。 : ${error.message}`
+        });
+      });
+    return true;
+  };
+
   handleChange = event => {
     this.setState({
       [event.target.name]: event.target.value
@@ -105,7 +131,9 @@ class Edit extends React.Component {
         add: ''
       }));
     }
-    this.handleSubmit();
+    setTimeout(() => {
+      this.handleSubmit();
+    }, 1000);
   };
 
   handleNewAdd = () => {
@@ -120,36 +148,9 @@ class Edit extends React.Component {
     this.handleSubmit();
   };
 
-  handleSubmit = () => {
-    if (this.state.loading) return false;
-    const { title, image, lead, section } = this.state;
-    this.setState({
-      loading: true
-    });
-    this.docref
-      .update({
-        title,
-        image,
-        lead,
-        section,
-        lastEdited: moment(new Date()).format('YYYY-MM-DD HH:mm')
-      })
-      .then(() => {
-        this.setState({
-          loading: false
-        });
-      })
-      .catch(error => {
-        this.setState({
-          error: `記事を投稿できませんでした。 : ${error.message}`
-        });
-      });
-    return true;
-  };
-
   handlePublish = async () => {
-    const { location } = this.state;
-    const { title, image, lead, section } = this.state;
+    const published = uuidv4();
+    const { location, title, image, lead, section } = this.state;
 
     const confirm = window.confirm('本当に公開しますか？');
     if (!confirm) return false;
@@ -165,12 +166,13 @@ class Edit extends React.Component {
       loading: true
     });
 
-    this.docref
+    await this.docref
       .update({
         title,
         image,
         lead,
         section,
+        published,
         lastEdited: moment(new Date()).format('YYYY-MM-DD HH:mm')
       })
       .then(() => {
@@ -180,10 +182,10 @@ class Edit extends React.Component {
         docrefPublish.set(data.data());
         return data;
       })
-      .then(data => {
-        this.firebase.db
+      .then(async data => {
+        await this.firebase.db
           .collection('Published')
-          .doc()
+          .doc(published)
           .set(data.data());
         return data;
       })
@@ -340,8 +342,13 @@ class Edit extends React.Component {
   };
 
   handleImage = async ({ target: { files } }, index) => {
+    const {
+      location: { collection }
+    } = this.state;
     if (files[0].name) {
-      const ref = await this.firebase.storage().ref(`images/${files[0].name}`);
+      const ref = await this.firebase
+        .storage()
+        .ref(`${collection}/${files[0].name}`);
       ref
         .put(files[0])
         .then(snapshot => {
@@ -428,7 +435,7 @@ class Edit extends React.Component {
                 タイトル
               </Tag>
               <Input
-                spellcheck="false"
+                spellCheck="false"
                 style={{ margin: '0 0 1em 0' }}
                 name="title"
                 onChange={this.handleChange}
@@ -445,7 +452,7 @@ class Edit extends React.Component {
                 <Tag color="purple">メイン画像</Tag>
               </div>
               <TextArea
-                spellcheck="false"
+                spellCheck="false"
                 style={{}}
                 autosize={{ minRows: 2, maxRows: 100 }}
                 name="image"
@@ -463,7 +470,7 @@ class Edit extends React.Component {
                 <Tag color="purple">リード文書 (カード)</Tag>
               </div>
               <TextArea
-                spellcheck="false"
+                spellCheck="false"
                 style={{ marginBottom: 20 }}
                 autosize={{ minRows: 1, maxRows: 100 }}
                 name="lead"
@@ -516,7 +523,7 @@ class Edit extends React.Component {
                                 spellCheck={false}
                                 key={keyIndex}
                                 style={{ margin: '0.5em 0', marginTop: '2px' }}
-                                autosize={{ minRows: 1, maxRows: 1 }}
+                                autosize={{ minRows: 1, maxRows: 5 }}
                                 name={index}
                                 onChange={e => this.handleChangeSection(key, e)}
                                 value={section[index][key]}

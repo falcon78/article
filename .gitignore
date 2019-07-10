@@ -28,3 +28,4 @@ yarn-error.log*
 *.cache
 .firebase.json
 ./src/Components/Firebase/credentials.js
+src/Components/Firebase/credentials.js

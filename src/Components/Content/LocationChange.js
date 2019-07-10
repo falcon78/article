@@ -19,10 +19,10 @@ function LocationChange({ firebase, history }) {
   const [path, setPath] = useState({});
   const [title, setTitle] = useState('');
   const [error, setError] = useState('');
-  const [article, setArticle] = useState('');
-  const [articleTitle, setArticleTitle] = useState('');
+  const [searchArticle, setSearchArticle] = useState({});
   const [loading, setLoading] = useState(false);
   const [publishedCollection, setCollection] = useState([]);
+  const [publishedDocument, setPublishedDocument] = useState('');
 
   const fetchPathList = () => {
     const pathDocref = firebase.db
@@ -49,8 +49,8 @@ function LocationChange({ firebase, history }) {
   };
 
   const handleSelect = value => {
-    const docLocation = value.docPath.split('/');
-    const cardLocation = value.cardPath.split('/');
+    const docLocation = path[value].docPath.split('/');
+    const cardLocation = path[value].cardPath.split('/');
     setLocation({
       collection: docLocation[0],
       document: docLocation[1],
@@ -94,9 +94,17 @@ function LocationChange({ firebase, history }) {
         }
         if (ref.size <= 1) {
           ref.forEach(doc => {
-            setArticleTitle(doc.data().title);
-            setArticle(doc.id);
+            setSearchArticle({
+              ...setSearchArticle,
+              subDocument: doc.data().location.subdocument,
+              title: doc.data().title,
+              image: doc.data().image,
+              fullData: doc.data()
+            });
+            // setArticleTitle(doc.data().title);
+            // setArticle(doc.id);
             setLoading(false);
+            setPublishedDocument(doc.data().published);
           });
         } else {
           setLoading(false);
@@ -145,17 +153,17 @@ function LocationChange({ firebase, history }) {
 
   const setPrivate = () => {
     setLoading(true);
-    if (validate() && characterValidate(article)) {
+    if (validate() && characterValidate(searchArticle.subDocument)) {
       const articleRef = firebase.db
         .collection(location.collection)
         .doc(location.document)
         .collection(location.subcollection)
-        .doc(article);
+        .doc(searchArticle.subDocument);
       const cardRef = firebase.db
         .collection(location.collection)
         .doc(location.document)
         .collection(cardPath.subcollection)
-        .doc(article);
+        .doc(searchArticle.subDocument);
       articleRef
         .get()
         .then(data => {
@@ -173,6 +181,12 @@ function LocationChange({ firebase, history }) {
         })
         .then(() => {
           return articleRef.delete();
+        })
+        .then(() => {
+          return firebase.db
+            .collection('Published')
+            .doc(publishedDocument)
+            .delete();
         })
         .then(() => {
           setLoading(false);
@@ -257,7 +271,7 @@ function LocationChange({ firebase, history }) {
       <div className="select">
         <Select style={{ width: '300px' }} onChange={handleSelect}>
           {Object.keys(path).map(key => (
-            <Option value={path[key]}>{key}</Option>
+            <Option value={key}>{key}</Option>
           ))}
         </Select>
       </div>
@@ -284,19 +298,29 @@ function LocationChange({ firebase, history }) {
         <Input placeholder="タイトル" value={title} onChange={handleChange} />
       </div>
       <Button onClick={fetchArticle}>確認</Button>
-      {articleTitle && (
+      {searchArticle.title && (
         <div className="title">
           <span role="img" aria-label="smile emoji">
-            😃{articleTitle}
+            😃{searchArticle.title}
           </span>
         </div>
       )}
-      {article && (
+      {searchArticle.subDocument && (
         <div className="title">
           <span role="img" aria-label="smile emoji">
-            😃{article}
+            😃{searchArticle.subDocument}
           </span>
         </div>
+      )}
+      {searchArticle.image && (
+        <img
+          style={{
+            width: '300px',
+            height: 'auto'
+          }}
+          src={searchArticle.image}
+          alt="articleImage"
+        />
       )}
       <Button className="last" type="danger" onClick={setPrivate}>
         非公開
@@ -376,7 +400,9 @@ const Style = styled.div`
   }
 `;
 
-const condition = authUser => !!authUser;
+const condition = authUser => {
+  return !!authUser;
+};
 export default compose(
   withRouter,
   withAuthorization(condition),

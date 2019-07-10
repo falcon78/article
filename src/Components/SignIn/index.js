@@ -2,31 +2,22 @@ import React, { Component } from 'react';
 import { Input, Button } from 'antd';
 import styled from 'styled-components';
 import { compose } from 'recompose';
-import { withFirebase } from '../Firebase/index';
 import { withRouter } from 'react-router-dom';
+import { withFirebase } from '../Firebase/index';
 import * as ROUTES from '../../constants/routes';
 
+
 class SignInForm extends Component {
-  constructor(props) {
-    super(props);
+  constructor({ firebase, history }) {
+    super({ firebase, history });
+    this.firebase = firebase;
     this.state = {
       email: '',
       pass: '',
       error: ''
     };
   }
-  componentDidMount() {
-    //ログインしていない状態でデータを取得できるか試しています。（アクセス権限のテスト）
-    let docref = this.props.firebase.db.collection('Articles').doc('testdoc');
-    docref
-      .get()
-      .then(res => {
-        console.log(res.data());
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  }
+
   onChange = e => {
     this.setState({
       [e.target.name]: e.target.value
@@ -34,11 +25,12 @@ class SignInForm extends Component {
   };
 
   handleSubmit = () => {
-    this.props.firebase
-      .doSignInWithEmailAndPassword(this.state.email, this.state.pass)
+    const { email, pass } = this.state;
+    this.firebase
+      .doSignInWithEmailAndPassword(email, pass)
       .then(() => {
         this.setState({ email: '', pass: '', error: '' });
-        this.props.history.push(ROUTES.LANDING);
+        this.history.push(ROUTES.LANDING);
       })
       .catch(error => {
         if (error.code === 'auth/invalid-email') {
@@ -52,29 +44,31 @@ class SignInForm extends Component {
         }
       });
   };
+
   render() {
+    const { email, pass, error, name } = this.state;
     return (
       <Style>
         <form>
           <Input
-            value={this.state.email}
+            value={email}
             type="email"
             name="email"
             required
-            placeholder={'メール'}
+            placeholder="メール"
             onChange={this.onChange}
           />
           <Input
-            value={this.state.pass}
+            value={pass}
             type="password"
             name="pass"
             required
-            placeholder={'パスワード'}
+            placeholder="パスワード"
             onChange={this.onChange}
           />
-          {this.state.error && <p>{this.state.error}</p>}
-          <Button onClick={this.handleSubmit} type="submit" htmlType={'button'}>
-            Submit {this.state.name}
+          {error && <p>{error}</p>}
+          <Button onClick={this.handleSubmit} type="submit" htmlType="button">
+            Submit {name}
           </Button>
         </form>
       </Style>

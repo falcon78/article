@@ -8,6 +8,8 @@ import { withAuthorization } from '../Session/index';
 import Loading from './modules/loading';
 import DisplayLocation from './modules/DisplayLocation';
 
+const uuidv4 = require('uuid/v4');
+
 const { Option } = Select;
 const moment = require('moment');
 
@@ -150,8 +152,9 @@ class NewArticle extends React.Component {
   };
 
   handleSelect = value => {
-    const docPath = value.docPath.split('/');
-    const cardPath = value.cardPath.split('/');
+    const { pathlist } = this.state;
+    const docPath = pathlist[value].docPath.split('/');
+    const cardPath = pathlist[value].cardPath.split('/');
     this.setState({
       collection: docPath[0],
       document: docPath[1],
@@ -187,8 +190,13 @@ class NewArticle extends React.Component {
   };
 
   handleImage = ({ target: { files } }) => {
+    const { collection } = this.state;
+    if (!collection) {
+      window.alert('記事のカテゴリーを選択してください');
+      return false;
+    }
     if (files[0].name) {
-      const ref = this.firebase.storage().ref(`images/${files[0].name}`);
+      const ref = this.firebase.storage().ref(`${collection}/${files[0].name}`);
       ref
         .put(files[0])
         .then(snapshot => {
@@ -204,6 +212,7 @@ class NewArticle extends React.Component {
           });
         });
     }
+    return true;
   };
 
   render() {
@@ -227,7 +236,9 @@ class NewArticle extends React.Component {
         <div className="select">
           <Select style={{ width: '300px' }} onChange={this.handleSelect}>
             {keys.map(key => (
-              <Option value={pathlist[key]}>{key}</Option>
+              <Option key={uuidv4()} value={key}>
+                {key}
+              </Option>
             ))}
           </Select>
         </div>
@@ -398,7 +409,7 @@ class NewArticle extends React.Component {
           style={{ margin: '2em 0 2em', width: '80vw' }}
           loading={loading}
           onClick={this.handleSubmit}
-          type='primary'
+          type="primary"
         >
           追加
         </Button>
@@ -457,7 +468,7 @@ const Style = styled.div`
     box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
     textarea,
     input {
-      background: #eae8e8 
+      background: #eae8e8;
     }
   }
 `;

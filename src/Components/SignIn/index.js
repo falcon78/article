@@ -10,6 +10,7 @@ class SignInForm extends Component {
   constructor({ firebase, history }) {
     super({ firebase, history });
     this.firebase = firebase;
+    this.history = history;
     this.state = {
       email: '',
       pass: '',

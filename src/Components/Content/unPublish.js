@@ -44,7 +44,7 @@ function UnPublish({ firebase, history }) {
             cardLocation: fetchedData.cardLocation,
             title: fetchedData.title,
             image: fetchedData.image,
-            publishedDocumentId: fetchedData.published
+            published: fetchedData.published
           });
           setState({
             ...state,
@@ -68,13 +68,31 @@ function UnPublish({ firebase, history }) {
 
   const searchArticles = async () => {
     if (!state.input) return false;
+    setState({
+      ...state,
+      loading: true
+    });
+    await axios
+      .get(
+        `https://asia-northeast1-infodex-talentgate.cloudfunctions.net/api/searchPublished/${
+          state.input
+        }`
+      )
+      .then(data => {
+        setSearchResults(data.data);
+        setState({
+          ...state,
+          loading: false
+        });
+      })
+      .catch(err => {
+        setState({
+          state,
+          loading: false,
+          error: `エラーが発生しました : ${err.message}`
+        });
+      });
 
-    const data = await axios.get(
-      `https://asia-northeast1-autho-ce94e.cloudfunctions.net/api/searchPublished/${
-        state.input
-      }`
-    );
-    setSearchResults(data.data);
     return true;
   };
 
@@ -116,7 +134,7 @@ function UnPublish({ firebase, history }) {
       .then(() => {
         return firebase.db
           .collection('Published')
-          .doc(document.publishedDocumentId)
+          .doc(document.published)
           .delete();
       })
       .then(() => {
@@ -145,8 +163,15 @@ function UnPublish({ firebase, history }) {
 
   return (
     <Style>
+      {state.error && <p>{state.error}</p>}
+      {state.loading && <Loading />}
       <div className="searchBar">
         <Input
+          onKeyDown={event => {
+            if (event.key === 'Enter') {
+              searchArticles();
+            }
+          }}
           onChange={event => {
             setState({ ...state, input: event.target.value });
           }}
@@ -201,7 +226,7 @@ const Style = styled.div`
     width: 100vw;
     text-align: center;
   }
-  .cardGallery{
+  .cardGallery {
     width: 80vw;
     display: flex;
     flex-wrap: wrap;

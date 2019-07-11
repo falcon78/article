@@ -29,3 +29,7 @@ yarn-error.log*
 .firebase.json
 ./src/Components/Firebase/credentials.js
 src/Components/Firebase/credentials.js
+.firebase/hosting.YnVpbGQ.cache
+*.cache
+.firebase/hosting.YnVpbGQ.cache
+firebase-debug.log

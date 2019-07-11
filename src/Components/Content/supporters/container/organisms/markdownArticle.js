@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import Subhead from '../../components/atoms/subhead3';
-import MarkdownConverterToHtml from '../../components/molecules/MarkdownConverterToHtml';
+import MarkdownHTMLParser from '../../components/molecules/MarkdownHTMLParser';
 import ImageCaption from '../../components/molecules/imageCaption';
 import ArticleTitle from '../../components/atoms/SP_ArticleTitle';
 import ColorText from '../../components/atoms/colorText';
@@ -15,7 +15,7 @@ const MarkdownArticle = props => {
     if (section.text) {
       articleElement = articleElement.concat(
         <div className="text" key={section.idKey}>
-          <MarkdownConverterToHtml markdown={section.text} />
+          <MarkdownHTMLParser markdown={section.text} />
         </div>
       );
     }
@@ -60,7 +60,7 @@ const MarkdownArticle = props => {
     if (section.colortext) {
       articleElement = articleElement.concat(
         <ColorText
-          text={<MarkdownConverterToHtml markdown={section.colortext} />}
+          text={<MarkdownHTMLParser markdown={section.colortext} />}
           color={section.color}
         />
       );
@@ -75,7 +75,7 @@ const MarkdownArticle = props => {
           <ImageCaption image={props.image} caption="" />
         </MarginBottom>
 
-        <MarkdownConverterToHtml markdown={props.lead} />
+        <MarkdownHTMLParser markdown={props.lead} />
       </div>
       {renderView.map(element => (
         <div key={element.idKey} className="margin">

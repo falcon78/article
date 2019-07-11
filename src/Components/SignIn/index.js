@@ -6,7 +6,6 @@ import { withRouter } from 'react-router-dom';
 import { withFirebase } from '../Firebase/index';
 import * as ROUTES from '../../constants/routes';
 
-
 class SignInForm extends Component {
   constructor({ firebase, history }) {
     super({ firebase, history });
@@ -16,6 +15,41 @@ class SignInForm extends Component {
       pass: '',
       error: ''
     };
+  }
+
+  componentDidMount() {
+    this.firebase.db
+      .collection('ActivityReport')
+      .doc('activityReport')
+      .collection('article')
+      .doc('article_2016_06')
+      .get()
+      .then(data => {
+        console.log(data);
+      });
+    this.firebase.db
+      .collection('Private')
+      .add({
+        test: 'test'
+      })
+      .then(() => {
+        console.log('SUCCESS');
+      })
+      .catch(err => {
+        console.log('write err', err);
+      });
+
+    this.firebase.db
+      .collection('Published')
+      .add({
+        test: 'test'
+      })
+      .then(() => {
+        console.log('SUCCESS');
+      })
+      .catch(err => {
+        console.log('write err', err);
+      });
   }
 
   onChange = e => {

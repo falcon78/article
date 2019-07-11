@@ -80,6 +80,7 @@ class NewArticle extends React.Component {
       this.characterValidate(subdocument) &&
       this.characterValidate(metadata.description) &&
       this.characterValidate(metadata.title) &&
+      this.characterValidate(metadata.ogUrl) &&
       this.characterValidate(id)
     ) {
       const docref = this.firebase.db.collection('Private').doc();
@@ -155,6 +156,7 @@ class NewArticle extends React.Component {
     const { pathlist } = this.state;
     const docPath = pathlist[value].docPath.split('/');
     const cardPath = pathlist[value].cardPath.split('/');
+    const to = pathlist[value].to;
     this.setState({
       collection: docPath[0],
       document: docPath[1],
@@ -164,7 +166,7 @@ class NewArticle extends React.Component {
         document: docPath[1],
         subcollection: docPath[2]
       },
-      to: value.to,
+      to,
       card: {
         collection: cardPath[0],
         document: cardPath[1],
@@ -203,6 +205,36 @@ class NewArticle extends React.Component {
           snapshot.ref.getDownloadURL().then(url => {
             this.setState({
               image: url
+            });
+          });
+        })
+        .catch(err => {
+          this.setState({
+            error: `(エラー)画像を投稿できませんでした。 Error: ${err.message}`
+          });
+        });
+    }
+    return true;
+  };
+
+  handleTwitterImage = ({ target: { files } }, stateName) => {
+    const { collection } = this.state;
+    if (!collection) {
+      window.alert('記事のカテゴリーを選択してください');
+      return false;
+    }
+    if (files[0].name) {
+      const ref = this.firebase.storage().ref(`${collection}/${files[0].name}`);
+      const { metadata } = this.state;
+      ref
+        .put(files[0])
+        .then(snapshot => {
+          snapshot.ref.getDownloadURL().then(url => {
+            this.setState({
+              metadata: {
+                ...metadata,
+                [stateName]: url
+              }
             });
           });
         })
@@ -400,6 +432,137 @@ class NewArticle extends React.Component {
             value={metadata.description}
             style={{ margin: '0.5em' }}
             placeholder="メタデータ  詳細 "
+            required
+          />
+        </div>
+
+        <div className="wrapper">
+          <p
+            style={{
+              marginLeft: '1em',
+              marginTop: '0.5em'
+            }}
+          >
+            メタデータ OGP 詳細
+          </p>
+          <Input
+            onChange={this.handleMetadata}
+            name="ogDescription"
+            value={metadata.ogDescription}
+            style={{ margin: '0.5em' }}
+            placeholder="メタデータ OGP 詳細 "
+            required
+          />
+        </div>
+
+        <div className="wrapper">
+          <p
+            style={{
+              marginLeft: '1em',
+              marginTop: '0.5em'
+            }}
+          >
+            メタデータOGPイメージ
+          </p>
+          <Input
+            style={{
+              margin: '10px 0'
+            }}
+            type="file"
+            name="file"
+            onChange={event => this.handleTwitterImage(event, 'ogImage')}
+          />
+          <Input
+            onChange={this.handleMetadata}
+            name="ogImage"
+            value={metadata.ogImage}
+            style={{ margin: '0.5em' }}
+            placeholder="メタデータOGPイメージ"
+            required
+          />
+        </div>
+
+        <div className="wrapper">
+          <p
+            style={{
+              marginLeft: '1em',
+              marginTop: '0.5em'
+            }}
+          >
+            OGPタイトル
+          </p>
+          <Input
+            onChange={this.handleMetadata}
+            name="ogTitle"
+            value={metadata.ogTitle}
+            style={{ margin: '0.5em' }}
+            placeholder="OGPタイトル "
+            required
+          />
+        </div>
+
+        <div className="wrapper">
+          <p
+            style={{
+              marginLeft: '1em',
+              marginTop: '0.5em'
+            }}
+          >
+            OGP URL
+          </p>
+          <Input
+            onChange={this.handleMetadata}
+            name="ogUrl"
+            value={metadata.ogUrl}
+            style={{ margin: '0.5em' }}
+            placeholder="URL "
+            required
+          />
+        </div>
+
+        <div className="wrapper">
+          <p
+            style={{
+              marginLeft: '1em',
+              marginTop: '0.5em'
+            }}
+          >
+            twitterイメージ
+          </p>
+          <Input
+            style={{
+              margin: '10px 0'
+            }}
+            type="file"
+            name="file"
+            onChange={event => this.handleTwitterImage(event, 'twitterImage')}
+          />
+          <Input
+            onChange={this.handleMetadata}
+            name="twitterImage"
+            value={metadata.twitterImage}
+            style={{ margin: '0.5em' }}
+            placeholder="ツイッターイメージ"
+            required
+          />
+        </div>
+
+        <div className="wrapper">
+          <p
+            style={{
+              marginLeft: '1em',
+              marginTop: '0.5em'
+            }}
+          >
+            twitter詳細
+          </p>
+
+          <Input
+            onChange={this.handleMetadata}
+            name="twitterDescription"
+            value={metadata.twitterDescription}
+            style={{ margin: '0.5em' }}
+            placeholder="ツイッターイメージ"
             required
           />
         </div>

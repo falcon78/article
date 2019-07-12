@@ -34,7 +34,7 @@ class NewArticle extends React.Component {
       },
       loading: false,
       error: '',
-      metadata: {
+      metaData: {
         title: '',
         description: ''
       },
@@ -65,7 +65,7 @@ class NewArticle extends React.Component {
       subdocument,
       subcollection,
       id,
-      metadata,
+      metaData,
       card,
       title,
       image,
@@ -78,9 +78,9 @@ class NewArticle extends React.Component {
       this.characterValidate(document) &&
       this.characterValidate(subcollection) &&
       this.characterValidate(subdocument) &&
-      this.characterValidate(metadata.description) &&
-      this.characterValidate(metadata.title) &&
-      this.characterValidate(metadata.ogUrl) &&
+      this.characterValidate(metaData.description) &&
+      this.characterValidate(metaData.title) &&
+      this.characterValidate(metaData.ogUrl) &&
       this.characterValidate(id)
     ) {
       const docref = this.firebase.db.collection('Private').doc();
@@ -112,7 +112,7 @@ class NewArticle extends React.Component {
           id: parseInt(id, 10),
           to,
           isOpenFlg: true,
-          metadata
+          metaData
         })
         .then(() => {
           this.setState(this.INITIAL_STATE);
@@ -143,10 +143,10 @@ class NewArticle extends React.Component {
   };
 
   handleMetadata = event => {
-    const { metadata } = this.state;
+    const { metaData } = this.state;
     this.setState({
-      metadata: {
-        ...metadata,
+      metaData: {
+        ...metaData,
         [event.target.name]: event.target.value
       }
     });
@@ -225,14 +225,14 @@ class NewArticle extends React.Component {
     }
     if (files[0].name) {
       const ref = this.firebase.storage().ref(`${collection}/${files[0].name}`);
-      const { metadata } = this.state;
+      const { metaData } = this.state;
       ref
         .put(files[0])
         .then(snapshot => {
           snapshot.ref.getDownloadURL().then(url => {
             this.setState({
-              metadata: {
-                ...metadata,
+              metaData: {
+                ...metaData,
                 [stateName]: url
               }
             });
@@ -257,7 +257,7 @@ class NewArticle extends React.Component {
       title,
       image,
       lead,
-      metadata,
+      metaData,
       error,
       loading
     } = this.state;
@@ -410,7 +410,7 @@ class NewArticle extends React.Component {
           <Input
             onChange={this.handleMetadata}
             name="title"
-            value={metadata.title}
+            value={metaData.title}
             style={{ margin: '0.5em' }}
             placeholder="メタデータ タイトル"
             required
@@ -429,7 +429,7 @@ class NewArticle extends React.Component {
           <Input
             onChange={this.handleMetadata}
             name="description"
-            value={metadata.description}
+            value={metaData.description}
             style={{ margin: '0.5em' }}
             placeholder="メタデータ  詳細 "
             required
@@ -448,7 +448,7 @@ class NewArticle extends React.Component {
           <Input
             onChange={this.handleMetadata}
             name="ogDescription"
-            value={metadata.ogDescription}
+            value={metaData.ogDescription}
             style={{ margin: '0.5em' }}
             placeholder="メタデータ OGP 詳細 "
             required
@@ -475,7 +475,7 @@ class NewArticle extends React.Component {
           <Input
             onChange={this.handleMetadata}
             name="ogImage"
-            value={metadata.ogImage}
+            value={metaData.ogImage}
             style={{ margin: '0.5em' }}
             placeholder="メタデータOGPイメージ"
             required
@@ -494,7 +494,7 @@ class NewArticle extends React.Component {
           <Input
             onChange={this.handleMetadata}
             name="ogTitle"
-            value={metadata.ogTitle}
+            value={metaData.ogTitle}
             style={{ margin: '0.5em' }}
             placeholder="OGPタイトル "
             required
@@ -513,7 +513,7 @@ class NewArticle extends React.Component {
           <Input
             onChange={this.handleMetadata}
             name="ogUrl"
-            value={metadata.ogUrl}
+            value={metaData.ogUrl}
             style={{ margin: '0.5em' }}
             placeholder="URL "
             required
@@ -540,7 +540,7 @@ class NewArticle extends React.Component {
           <Input
             onChange={this.handleMetadata}
             name="twitterImage"
-            value={metadata.twitterImage}
+            value={metaData.twitterImage}
             style={{ margin: '0.5em' }}
             placeholder="ツイッターイメージ"
             required
@@ -560,7 +560,7 @@ class NewArticle extends React.Component {
           <Input
             onChange={this.handleMetadata}
             name="twitterDescription"
-            value={metadata.twitterDescription}
+            value={metaData.twitterDescription}
             style={{ margin: '0.5em' }}
             placeholder="ツイッターイメージ"
             required

@@ -7,6 +7,7 @@ import ArticleTitle from '../../components/atoms/SP_ArticleTitle';
 import ColorText from '../../components/atoms/colorText';
 // import StepsDiagram from "./../../components/molecules/SP_StepsDiagram";
 import Header from '../../components/atoms/SP_BlockTextWithLineAtom';
+import CustomMarkdownColor from '../../components/atoms/CustomMarkdownColor';
 
 const MarkdownArticle = props => {
   const renderView = props.section.map(section => {
@@ -65,6 +66,19 @@ const MarkdownArticle = props => {
         />
       );
     }
+    if (section.customMarkdown) {
+      let outputText = section.customMarkdown;
+      outputText = outputText.replace(
+        /\$\$(.*?)\$\$/gim,
+        `<span className="customMarkdownColor">$1</span>`
+      );
+      articleElement = articleElement.concat(
+        <CustomMarkdownColor
+          color={section.color}
+          text={<MarkdownHTMLParser markdown={outputText} />}
+        />
+      );
+    }
     return articleElement;
   });
   return (
@@ -86,16 +100,9 @@ const MarkdownArticle = props => {
   );
 };
 
-/* <div>
-        props.body.map(v => (
-          <div key={section.idKey}>{ {section.step && <StepsDiagram />}}</div>
-        ))}
-</div> */
-
 export default MarkdownArticle;
 
 const Style = styled.div`
- 
   .margin {
     margin: 1em;
   }

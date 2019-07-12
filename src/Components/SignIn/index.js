@@ -20,8 +20,6 @@ class SignInForm extends Component {
 
   componentDidMount() {
     this.firebase.db
-      .collection('ActivityReport')
-      .doc('activityReport')
       .collection('article')
       .doc('article_2016_06')
       .get()

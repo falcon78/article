@@ -45,7 +45,8 @@ class Edit extends React.Component {
         'passage',
         'colortext',
         'subhead',
-        'header'
+        'header',
+        'customMarkdown'
       ],
       initialLoad: true,
       deleteModal: false,
@@ -118,6 +119,17 @@ class Edit extends React.Component {
           }
         ],
         add: ''
+      }));
+    } else if (value === 'customMarkdown') {
+      this.setState(prevState => ({
+        section: [
+          ...prevState.section,
+          {
+            [value]: '',
+            color: '',
+            idKey
+          }
+        ]
       }));
     } else {
       this.setState(prevState => ({
@@ -491,6 +503,12 @@ class Edit extends React.Component {
                   ) {
                     articleKey[0] = 'colortext';
                     articleKey[1] = 'color';
+                  } else if (
+                    articleKey.length === 2 &&
+                    articleKey.includes('customMarkdown')
+                  ) {
+                    articleKey[0] = 'customMarkdown';
+                    articleKey[1] = 'color';
                   }
                   return (
                     <Flipped key={content.idKey} flipId={content.idKey}>
@@ -522,7 +540,10 @@ class Edit extends React.Component {
                               <TextArea
                                 spellCheck={false}
                                 key={keyIndex}
-                                style={{ margin: '0.5em 0', marginTop: '2px' }}
+                                style={{
+                                  margin: '0.5em 0',
+                                  marginTop: '2px'
+                                }}
                                 autosize={{ minRows: 1, maxRows: 5 }}
                                 name={index}
                                 onChange={e => this.handleChangeSection(key, e)}
@@ -535,7 +556,10 @@ class Edit extends React.Component {
                               <TextArea
                                 spellCheck={false}
                                 key={keyIndex}
-                                style={{ margin: '0.5em 0', marginTop: '2px' }}
+                                style={{
+                                  margin: '0.5em 0',
+                                  marginTop: '2px'
+                                }}
                                 autosize={{
                                   minRows: 1,
                                   maxRows: 100

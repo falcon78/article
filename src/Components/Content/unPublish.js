@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { withRouter } from 'react-router-dom';
-import { Card, Input, Button, Modal, Select } from 'antd';
+import { Card, Input, Button, Modal } from 'antd';
 import styled from 'styled-components';
 import { compose } from 'recompose';
 import { withAuthorization } from '../Session';
 import { withFirebase } from '../Firebase';
 import Loading from './modules/loading';
 import MarkdownArticle from './supporters/container/organisms/markdownArticle';
-import MarkdownHTMLParser from './supporters/components/molecules/MarkdownHTMLParser';
 
 const { Meta } = Card;
 const axios = require('axios');
@@ -19,7 +18,7 @@ function UnPublish({ firebase, history }) {
   const [fetchedResults, setFetchedResult] = useState([]);
   // app state (loading, state)
   const [state, setState] = useState({});
-  //state for storing info about clicked article;
+  // state for storing info about clicked article;
   const [open, setOpen] = useState({});
 
   const privateRef = firebase.db.collection('Private').doc();
@@ -80,11 +79,10 @@ function UnPublish({ firebase, history }) {
       .doc(`/Published/${document.published}`)
       .get()
       .then(data => {
-        console.log(data.data());
         setOpen(data.data());
         setState({
           ...state,
-          laoding: false
+          loading: false
         });
       })
       .catch(err => {
@@ -295,8 +293,6 @@ const Style = styled.div`
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-  }
-  
   }
 `;
 

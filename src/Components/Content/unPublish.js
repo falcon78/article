@@ -6,6 +6,8 @@ import { compose } from 'recompose';
 import { withAuthorization } from '../Session';
 import { withFirebase } from '../Firebase';
 import Loading from './modules/loading';
+import MarkdownArticle from './supporters/container/organisms/markdownArticle';
+import MarkdownHTMLParser from './supporters/components/molecules/MarkdownHTMLParser';
 
 const { Meta } = Card;
 const axios = require('axios');
@@ -17,6 +19,8 @@ function UnPublish({ firebase, history }) {
   const [fetchedResults, setFetchedResult] = useState([]);
   // app state (loading, state)
   const [state, setState] = useState({});
+  //state for storing info about clicked article;
+  const [open, setOpen] = useState({});
 
   const privateRef = firebase.db.collection('Private').doc();
 
@@ -66,6 +70,32 @@ function UnPublish({ firebase, history }) {
       });
   };
 
+  // fetches the clicked document to preview
+  const fetchPreviewArticle = document => {
+    setState({
+      ...state,
+      loading: true
+    });
+    firebase.db
+      .doc(`/Published/${document.published}`)
+      .get()
+      .then(data => {
+        console.log(data.data());
+        setOpen(data.data());
+        setState({
+          ...state,
+          laoding: false
+        });
+      })
+      .catch(err => {
+        setState({
+          ...state,
+          loading: false,
+          error: `エラーは発生しました: ${err.message}`
+        });
+      });
+  };
+
   const searchArticles = async () => {
     if (!state.input) return false;
     setState({
@@ -97,9 +127,10 @@ function UnPublish({ firebase, history }) {
   };
 
   const setPrivate = document => {
-    console.log(document);
-    const confirmation = window.confirm('本当に非公開にしますか?');
-    if (!confirmation) return false;
+    setState({
+      ...state,
+      loading: true
+    });
     const articleRef = firebase.db
       .collection(document.location.collection)
       .doc(document.location.document)
@@ -116,10 +147,6 @@ function UnPublish({ firebase, history }) {
         if (data.data().NEWCONTENTTYPE) {
           return data;
         }
-        setState({
-          ...state,
-          loading: true
-        });
         throw new Error('この記事は編集できません。');
       })
       .then(data => {
@@ -142,6 +169,7 @@ function UnPublish({ firebase, history }) {
           ...state,
           loading: false
         });
+        setOpen({});
         history.push('/');
       })
       .catch(fetchError => {
@@ -182,7 +210,7 @@ function UnPublish({ firebase, history }) {
         <div className="cardGallery">
           <h3>検索結果</h3>
           {searchResults.map(doc => (
-            <ClickableCard clickAction={setPrivate} document={doc} />
+            <ClickableCard clickAction={fetchPreviewArticle} document={doc} />
           ))}
         </div>
       )}
@@ -191,9 +219,45 @@ function UnPublish({ firebase, history }) {
         <div className="cardGallery">
           <h3>公開済み</h3>
           {fetchedResults.map(doc => (
-            <ClickableCard clickAction={setPrivate} document={doc} />
+            <ClickableCard clickAction={fetchPreviewArticle} document={doc} />
           ))}
         </div>
+      )}
+      {open.title && (
+        <Modal
+          visible={!!open.title}
+          style={{
+            width: '520px'
+          }}
+          title={open.title ? open.title : ''}
+          onOk={() => setPrivate(open)}
+          onCancel={() => setOpen({})}
+          footer={[
+            <Button
+              key="back"
+              onClick={() => {
+                setOpen({});
+              }}
+            >
+              キャンセル
+            </Button>,
+            <Button
+              key="submit"
+              type="primary"
+              loading={state.loading}
+              onClick={() => setPrivate(open)}
+            >
+              非公開
+            </Button>
+          ]}
+        >
+          <MarkdownArticle
+            section={open.section}
+            image={open.image}
+            title={open.title}
+            lead={open.lead}
+          />
+        </Modal>
       )}
     </Style>
   );
@@ -231,6 +295,8 @@ const Style = styled.div`
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
+  }
+  
   }
 `;
 

@@ -10,6 +10,7 @@ import Header from '../../components/atoms/SP_BlockTextWithLineAtom';
 import CustomMarkdownColor from '../../components/atoms/CustomMarkdownColor';
 
 const MarkdownArticle = props => {
+  console.log(props);
   const renderView = props.section.map(section => {
     let articleElement = [];
 

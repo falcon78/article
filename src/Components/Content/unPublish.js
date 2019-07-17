@@ -224,9 +224,6 @@ function UnPublish({ firebase, history }) {
       {open.title && (
         <Modal
           visible={!!open.title}
-          style={{
-            width: '520px'
-          }}
           title={open.title ? open.title : ''}
           onOk={() => setPrivate(open)}
           onCancel={() => setOpen({})}

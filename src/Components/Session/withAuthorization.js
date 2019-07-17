@@ -7,17 +7,19 @@ import { AuthUserContext } from './index';
 
 const withAuthorization = condition => Component => {
   class WithAuthorization extends React.Component {
-    constructor(props) {
-      super(props);
+    constructor({ firebase, history }) {
+      super({ firebase, history });
+      this.firebase = firebase;
+      this.history = history;
       this.state = {
         authStatus: null
       };
     }
 
     componentDidMount() {
-      this.listener = this.props.firebase.auth.onAuthStateChanged(authUser => {
+      this.listener = this.firebase.auth.onAuthStateChanged(authUser => {
         if (!condition(authUser)) {
-          this.props.history.push(ROUTES.SIGN_IN);
+          this.history.push(ROUTES.SIGN_IN);
         } else {
           this.setState({
             authStatus: true
@@ -31,15 +33,8 @@ const withAuthorization = condition => Component => {
     }
 
     render() {
-      return (
-        <React.Fragment>
-          <AuthUserContext.Consumer>
-            {authUser =>
-              condition(authUser) ? <Component {...this.props} /> : null
-            }
-          </AuthUserContext.Consumer>
-        </React.Fragment>
-      );
+      const { authStatus } = this.state;
+      return <div>{authStatus ? <Component {...this.props} /> : null}</div>;
     }
   }
   return compose(
